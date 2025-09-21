@@ -102,6 +102,24 @@ export class App extends React.Component<{}, AppState> {
         }
         break;
         
+      case 'searchWithSuggestionsResponse':
+        console.log('Search suggestions response:', msg.data);
+        if (msg.data?.data?.search?.suggestions?.searchTerms) {
+          const suggestions = msg.data.data.search.suggestions.searchTerms.map((term: any) => ({
+            text: term.suggestionQuery,
+            query: term.suggestionQuery
+          }));
+          console.log('Mapped suggestions:', suggestions);
+          this.setState({ searchSuggestions: suggestions });
+        } else {
+          console.log('No suggestions found in response, checking structure...');
+          console.log('msg.data:', msg.data);
+          console.log('msg.data.data:', msg.data?.data);
+          console.log('msg.data.data.search:', msg.data?.data?.search);
+          console.log('msg.data.data.search.suggestions:', msg.data?.data?.search?.suggestions);
+        }
+        break;
+        
       case 'error':
         this.setState({ error: msg.error, loading: false });
         break;
@@ -140,7 +158,7 @@ export class App extends React.Component<{}, AppState> {
     
     this.sendMessage('searchProducts', {
       query,
-      count: 10,
+      count: 20,
     });
   };
 
@@ -156,13 +174,48 @@ export class App extends React.Component<{}, AppState> {
     this.searchProducts(searchTerm);
   };
 
-  handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  private searchSuggestionsTimeout: number | null = null;
+
+  fetchSearchSuggestions = async (query: string) => {
+    // Clear any existing timeout
+    if (this.searchSuggestionsTimeout) {
+      clearTimeout(this.searchSuggestionsTimeout);
+    }
+
+    // Debounce the search suggestions request
+    this.searchSuggestionsTimeout = window.setTimeout(() => {
+      try {
+        console.log('Fetching suggestions for:', query);
+        // Send message to Figma plugin code to fetch suggestions
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'searchWithSuggestions', 
+            payload: { query, suggestionsCount: 10 }
+          } 
+        }, '*');
+      } catch (error) {
+        console.error('Failed to fetch search suggestions:', error);
+      }
+    }, 300); // 300ms debounce
+  };
+
+  handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log('handleSearchChange called with value:', value);
     this.setState({ 
       searchTerm: value,
       // Open overlay when user starts typing
       isSearchOverlayOpen: value.length > 0
     });
+
+    // Fetch search suggestions if there's a query
+    if (value.trim().length > 0) {
+      console.log('Triggering fetchSearchSuggestions for:', value.trim());
+      this.fetchSearchSuggestions(value.trim());
+    } else {
+      console.log('Clearing suggestions - empty value');
+      this.setState({ searchSuggestions: [] });
+    }
   };
 
   // Transform categories for the grid component
@@ -214,6 +267,22 @@ export class App extends React.Component<{}, AppState> {
   };
 
   handleSearchOverlayChange = (value: string) => {
+    console.log('handleSearchOverlayChange called with value:', value);
+    this.setState({ searchTerm: value });
+    
+    // Fetch search suggestions if there's a query
+    if (value.trim().length > 0) {
+      console.log('Triggering fetchSearchSuggestions from overlay for:', value.trim());
+      this.fetchSearchSuggestions(value.trim());
+    } else {
+      console.log('Clearing suggestions from overlay - empty value');
+      this.setState({ searchSuggestions: [] });
+    }
+  };
+
+  // Visual-only update for arrow key navigation (no new API calls)
+  handleSearchFieldVisualUpdate = (value: string) => {
+    console.log('handleSearchFieldVisualUpdate called with value:', value);
     this.setState({ searchTerm: value });
   };
 
@@ -222,14 +291,11 @@ export class App extends React.Component<{}, AppState> {
     this.searchProducts(suggestion);
   };
 
-  // Get filtered suggestions based on current search term
+  // Get all suggestions from API without filtering
   getFilteredSuggestions = () => {
-    const { searchTerm, searchSuggestions } = this.state;
-    if (!searchTerm) return searchSuggestions;
-    
-    return searchSuggestions.filter(suggestion =>
-      suggestion.text.toLowerCase().startsWith(searchTerm.toLowerCase())
-    );
+    const { searchSuggestions } = this.state;
+    // Don't filter suggestions - the API already returns relevant suggestions
+    return searchSuggestions;
   };
 
   render() {
@@ -297,6 +363,7 @@ export class App extends React.Component<{}, AppState> {
           suggestions={filteredSuggestions}
           onClose={this.handleSearchOverlayClose}
           onSearchChange={this.handleSearchOverlayChange}
+          onSearchFieldVisualUpdate={this.handleSearchFieldVisualUpdate}
           onSuggestionSelect={this.handleSuggestionSelect}
           onSearch={this.searchProducts}
           loading={loading}

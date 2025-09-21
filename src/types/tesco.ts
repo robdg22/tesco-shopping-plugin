@@ -109,3 +109,21 @@ export interface SearchProductsResponse {
     totalCount?: number;
   };
 }
+
+export interface SearchSuggestion {
+  suggestionQuery: string;
+}
+
+export interface SearchSuggestionsInfo {
+  count: number;
+  query: string;
+}
+
+export interface SearchWithSuggestionsResponse {
+  search: {
+    suggestions: {
+      searchTerms: SearchSuggestion[];
+      info: SearchSuggestionsInfo;
+    };
+  };
+}

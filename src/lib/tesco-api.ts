@@ -2,7 +2,8 @@ import type {
   GraphQLResponse, 
   GetTaxonomyResponse, 
   GetCategoryProductsResponse,
-  SearchProductsResponse 
+  SearchProductsResponse,
+  SearchWithSuggestionsResponse
 } from '../types/tesco'
 
 // GraphQL Queries
@@ -216,6 +217,31 @@ export const SEARCH_PRODUCTS_QUERY = `
   }
 `
 
+export const SEARCH_WITH_SUGGESTIONS_QUERY = `
+  query SearchWithSuggestions(
+    $query: String!
+    $suggestionsCount: Int
+    $params: BrowseSearchConfig
+    $configs: [ConfigArgType]
+  ) {
+    search(
+      query: $query
+      config: $params
+      configs: $configs
+    ) {
+      suggestions(suggestionsCount: $suggestionsCount) {
+        searchTerms {
+          suggestionQuery
+        }
+        info {
+          count
+          query
+        }
+      }
+    }
+  }
+`
+
 // API Client Configuration
 const PROXY_URL = 'https://tesco-proxy-b4fena2ys-robdgraham-gmailcoms-projects.vercel.app/api/tesco'
 
@@ -313,6 +339,18 @@ export class TescoAPI {
     }
     
     return graphqlRequest<SearchProductsResponse>(SEARCH_PRODUCTS_QUERY, variables)
+  }
+
+  static async searchWithSuggestions(options: {
+    query: string
+    suggestionsCount?: number
+  }) {
+    const variables = {
+      query: options.query,
+      suggestionsCount: options.suggestionsCount || 10
+    }
+    
+    return graphqlRequest<SearchWithSuggestionsResponse>(SEARCH_WITH_SUGGESTIONS_QUERY, variables)
   }
 }
 

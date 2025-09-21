@@ -1,10 +1,11 @@
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'searchWithSuggestions';
   payload?: {
     query?: string;
     categoryId?: string;
     count?: number;
+    suggestionsCount?: number;
   };
 }
 
@@ -25,6 +26,9 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'getCategoryProducts':
         await handleCategoryProducts(msg.payload);
+        break;
+      case 'searchWithSuggestions':
+        await handleSearchWithSuggestions(msg.payload);
         break;
       default:
         figma.ui.postMessage({ type: 'error', error: 'Unknown message type' });
@@ -206,6 +210,59 @@ async function handleCategoryProducts(payload?: { categoryId?: string; count?: n
     figma.ui.postMessage({
       type: 'error',
       error: `Failed to load category products: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleSearchWithSuggestions(payload?: { query?: string; suggestionsCount?: number; count?: number }) {
+  if (!payload?.query) {
+    figma.ui.postMessage({ type: 'error', error: 'Search query is required' });
+    return;
+  }
+
+  const searchWithSuggestionsQuery = `
+    query SearchWithSuggestions(
+      $query: String!
+      $suggestionsCount: Int
+      $params: BrowseSearchConfig
+      $configs: [ConfigArgType]
+    ) {
+      search(
+        query: $query
+        config: $params
+        configs: $configs
+      ) {
+        suggestions(suggestionsCount: $suggestionsCount) {
+          searchTerms {
+            suggestionQuery
+          }
+          info {
+            count
+            query
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const variables = {
+      query: payload.query,
+      suggestionsCount: payload.suggestionsCount || 10
+    };
+    
+    console.log('Making search suggestions request with variables:', variables);
+    const result = await makeGraphQLRequest(searchWithSuggestionsQuery, variables);
+    console.log('Search suggestions API response:', result);
+
+    figma.ui.postMessage({
+      type: 'searchWithSuggestionsResponse',
+      data: result,
+    });
+  } catch (error) {
+    figma.ui.postMessage({
+      type: 'error',
+      error: `Failed to search with suggestions: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }

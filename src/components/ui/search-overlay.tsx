@@ -14,6 +14,7 @@ interface SearchOverlayProps {
   suggestions: SearchSuggestion[]
   onClose: () => void
   onSearchChange: (value: string) => void
+  onSearchFieldVisualUpdate: (value: string) => void
   onSuggestionSelect: (suggestion: string) => void
   onSearch: (query: string) => void
   loading?: boolean
@@ -25,6 +26,7 @@ export function SearchOverlay({
   suggestions,
   onClose,
   onSearchChange,
+  onSearchFieldVisualUpdate,
   onSuggestionSelect,
   onSearch,
   loading = false
@@ -32,6 +34,9 @@ export function SearchOverlay({
   const inputRef = React.useRef<HTMLInputElement>(null)
   const [showSuggestions, setShowSuggestions] = React.useState(false)
   const [isClosing, setIsClosing] = React.useState(false)
+  const [selectedIndex, setSelectedIndex] = React.useState(-1)
+  const [previousSelectedIndex, setPreviousSelectedIndex] = React.useState(-1)
+  const [originalSearchTerm, setOriginalSearchTerm] = React.useState('')
 
   React.useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -44,12 +49,70 @@ export function SearchOverlay({
     }
   }, [isOpen])
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchTerm.trim()) {
-      onSearch(searchTerm)
-      handleClose()
+  // Reset selected index when suggestions change and store original term
+  React.useEffect(() => {
+    setSelectedIndex(-1)
+    setPreviousSelectedIndex(-1)
+    setOriginalSearchTerm(searchTerm)
+  }, [suggestions])
+
+  // Store original search term when overlay opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setOriginalSearchTerm(searchTerm)
     }
-    if (e.key === 'Escape') {
+  }, [isOpen])
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      const newIndex = selectedIndex === -1 ? 0 : (selectedIndex < displaySuggestions.length - 1 ? selectedIndex + 1 : selectedIndex)
+      setPreviousSelectedIndex(selectedIndex)
+      setSelectedIndex(newIndex)
+      
+      // Update search field with highlighted suggestion (visual only, no new API calls)
+      if (newIndex >= 0 && newIndex < displaySuggestions.length) {
+        const suggestion = displaySuggestions[newIndex]
+        onSearchFieldVisualUpdate(suggestion.text)
+        
+        // Set cursor to end of text
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.setSelectionRange(suggestion.text.length, suggestion.text.length)
+          }
+        }, 0)
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      const newIndex = selectedIndex === -1 ? displaySuggestions.length - 1 : selectedIndex - 1
+      setPreviousSelectedIndex(selectedIndex)
+      setSelectedIndex(newIndex)
+      
+      // Update search field with highlighted suggestion or restore original (visual only, no new API calls)
+      if (newIndex >= 0 && newIndex < displaySuggestions.length) {
+        const suggestion = displaySuggestions[newIndex]
+        onSearchFieldVisualUpdate(suggestion.text)
+        
+        // Set cursor to end of text
+        setTimeout(() => {
+          if (inputRef.current) {
+            inputRef.current.setSelectionRange(suggestion.text.length, suggestion.text.length)
+          }
+        }, 0)
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedIndex >= 0 && selectedIndex < displaySuggestions.length) {
+        // Select the highlighted suggestion
+        const selectedSuggestion = displaySuggestions[selectedIndex]
+        onSuggestionSelect(selectedSuggestion.query)
+        handleClose()
+      } else if (searchTerm.trim()) {
+        // No suggestion selected, search with current term
+        onSearch(searchTerm)
+        handleClose()
+      }
+    } else if (e.key === 'Escape') {
       handleClose()
     }
   }
@@ -67,24 +130,18 @@ export function SearchOverlay({
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Clear selection when typing
+    setPreviousSelectedIndex(selectedIndex)
+    setSelectedIndex(-1)
     onSearchChange(e.target.value)
   }
 
-  // Always show exactly 5 suggestions
+  // Show all suggestions from API, up to 10
   const displaySuggestions = React.useMemo(() => {
-    if (!searchTerm.trim()) {
-      // Show first 5 suggestions when no search term
-      return suggestions.slice(0, 5);
-    }
-    
-    const filtered = suggestions.filter(suggestion =>
-      suggestion.text.toLowerCase().startsWith(searchTerm.toLowerCase())
-    );
-    
-    // Pad with original suggestions if filtered results are fewer than 5
-    const remaining = suggestions.filter(s => !filtered.includes(s));
-    return [...filtered, ...remaining].slice(0, 5);
-  }, [suggestions, searchTerm]);
+    // Don't filter suggestions - the API already returns relevant suggestions
+    // Just show all suggestions received from the API
+    return suggestions.slice(0, 10);
+  }, [suggestions]);
 
   const renderSuggestionText = (suggestion: SearchSuggestion) => {
     const query = searchTerm.toLowerCase()
@@ -109,7 +166,7 @@ export function SearchOverlay({
 
   // Calculate dynamic height based on suggestions
   const searchBarHeight = showSuggestions && displaySuggestions.length > 0 
-    ? 34 + (displaySuggestions.length * 30) // 34px input + suggestions (30px each)
+    ? 34 + (displaySuggestions.length * 38) + 6 // 34px input + suggestions (38px each) + 8px padding
     : 34; // 34px input only
 
   return (
@@ -149,7 +206,7 @@ export function SearchOverlay({
                 ref={inputRef}
                 value={searchTerm}
                 onChange={handleInputChange}
-                onKeyDown={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 className={cn(
                   "flex-1 bg-transparent border-0 outline-none h-full",
                   "text-sm text-[#666666] placeholder:text-[#666666]",
@@ -177,31 +234,75 @@ export function SearchOverlay({
            {showSuggestions && displaySuggestions.length > 0 && (
              <div 
                className={cn(
-                 "transition-all duration-150 ease-out",
+                 "relative transition-all duration-150 ease-out",
                  "animate-in slide-in-from-top-1 fade-in-0"
                )}
                style={{ 
-                 paddingLeft: '36px', // 12px padding + 16px icon + 4px gap adjustment
-                 paddingRight: '12px', 
                  paddingTop: '4px',
                  paddingBottom: '4px'
                }}
              >
-               <div className="space-y-1">
+               {/* Base layer - inactive text (gray) */}
+               <div className="relative" onMouseLeave={() => {
+                 setPreviousSelectedIndex(selectedIndex)
+                 setSelectedIndex(-1)
+               }}>
                  {displaySuggestions.map((suggestion, index) => (
                    <button
                      key={`${suggestion.query}-${index}`}
                      onClick={() => handleSuggestionClick(suggestion.query)}
+                     onMouseEnter={() => {
+                       setPreviousSelectedIndex(selectedIndex)
+                       setSelectedIndex(index)
+                     }}
                      className={cn(
-                       "block w-full text-left text-sm text-[#666666]",
-                       "hover:text-[#333333] transition-colors",
-                       "font-tesco-regular leading-[18px]",
+                       "block w-full text-left text-sm font-tesco-regular leading-[18px]",
+                       "h-[38px] flex items-center",
                        "animate-in slide-in-from-left-1 fade-in-0",
-                       "py-1.5"
+                       "text-[#666666] hover:text-[#333333]"
                      )}
                      style={{ 
+                       paddingLeft: '36px', // 12px padding + 16px icon + 8px gap
+                       paddingRight: '12px',
                        animationDelay: `${index * 30}ms`,
                        animationFillMode: 'both'
+                     }}
+                   >
+                     {renderSuggestionText(suggestion)}
+                   </button>
+                 ))}
+               </div>
+
+               {/* Clipping path overlay - active background + white text */}
+               <div 
+                 className="absolute top-0 left-0 right-0 pointer-events-none"
+                 style={{
+                   height: `${displaySuggestions.length * 38 + 8}px`, // Total height of all suggestions + padding
+                   background: '#007eb3',
+                   clipPath: selectedIndex >= 0 
+                     ? `inset(${4 + (selectedIndex * 38)}px 0 ${4 + ((displaySuggestions.length - selectedIndex - 1) * 38)}px 0 round 0px)`
+                     : 'inset(100% 0 0 0)',
+                   transition: (previousSelectedIndex === -1 && selectedIndex === 0) || (previousSelectedIndex === 0 && selectedIndex === -1) ? 'none' : 'clip-path 200ms cubic-bezier(0.77, 0, 0.175, 1)',
+                   boxShadow: '0px 0px 12px 1px rgba(0,126,179,0.1)'
+                 }}
+               >
+                 {displaySuggestions.map((suggestion, index) => (
+                   <button
+                     key={`overlay-${suggestion.query}-${index}`}
+                     className={cn(
+                       "block w-full text-left text-sm font-tesco-regular leading-[18px]",
+                       "h-[38px] flex items-center pointer-events-auto",
+                       "text-white"
+                     )}
+                     style={{ 
+                       paddingLeft: '36px',
+                       paddingRight: '12px',
+                       marginTop: index === 0 ? '4px' : '0px'
+                     }}
+                     onClick={() => handleSuggestionClick(suggestion.query)}
+                     onMouseEnter={() => {
+                       setPreviousSelectedIndex(selectedIndex)
+                       setSelectedIndex(index)
                      }}
                    >
                      {renderSuggestionText(suggestion)}
