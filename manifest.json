@@ -1,6 +1,6 @@
 {
-  "name": "figma-plugin-template",
-  "id": "00000000",
+  "name": "Tesco Shopping Plugin",
+  "id": "tesco-shopping-plugin",
   "api": "1.0.0",
   "main": "dist/code.js",
   "capabilities": [],
@@ -12,7 +12,15 @@
   "ui": "dist/ui.html",
   "networkAccess": {
     "allowedDomains": [
-      "none"
-    ]
+      "https://api.tesco.com",
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com",
+      "https://tesco-proxy-b4fena2ys-robdgraham-gmailcoms-projects.vercel.app/api/tesco",
+      "https://digitalcontent.api.tesco.com"
+    ],
+    "devAllowedDomains": [
+      "http://localhost:3001"
+    ],
+    "reasoning": "Development proxy server required for local testing of Tesco API integration, Google Fonts for fallback typography"
   }
 }

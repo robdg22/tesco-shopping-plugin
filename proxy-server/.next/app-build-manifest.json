@@ -1,0 +1,9 @@
+{
+  "pages": {
+    "/api/tesco/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/tesco/route.js"
+    ]
+  }
+}

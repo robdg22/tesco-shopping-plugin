@@ -1,7 +1,7 @@
 {
-  "name": "figma-plugin-template",
+  "name": "tesco-shopping-plugin",
   "version": "1.0.0",
-  "description": "Your Figma Plugin",
+  "description": "Figma plugin for Tesco shopping integration",
   "main": "dist/code.js",
   "scripts": {
     "build": "webpack --mode production",
@@ -64,6 +64,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^0.544.0",
     "tailwind-merge": "^3.3.1"
   }
 }

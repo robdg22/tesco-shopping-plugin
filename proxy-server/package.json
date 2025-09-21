@@ -1,0 +1,23 @@
+{
+  "name": "tesco-proxy-server",
+  "version": "1.0.0",
+  "description": "Local proxy server for Tesco API integration",
+  "main": "server.js",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001"
+  },
+  "dependencies": {
+    "next": "15.2.4",
+    "react": "^19",
+    "react-dom": "^19",
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19"
+  }
+}
+

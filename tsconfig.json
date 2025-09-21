@@ -16,5 +16,10 @@
     "paths": {
       "@/*": ["./src/*"]
     }
-  }
+  },
+  "exclude": [
+    "proxy-server/**/*",
+    "node_modules",
+    "dist"
+  ]
 }

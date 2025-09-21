@@ -1,0 +1,27 @@
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+interface SearchIconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number
+}
+
+export function SearchIcon({ size = 16, className, ...props }: SearchIconProps) {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn("flex-shrink-0", className)}
+      {...props}
+    >
+      <path 
+        fillRule="evenodd" 
+        clipRule="evenodd" 
+        d="M1.75 9.00003C1.75 4.99582 4.99579 1.75003 9 1.75003C13.0042 1.75003 16.25 4.99582 16.25 9.00003C16.25 10.732 15.6428 12.322 14.6296 13.5689L22.0301 20.9694L20.9694 22.0301L13.5689 14.6296C12.322 15.6428 10.732 16.25 9 16.25C4.99579 16.25 1.75 13.0042 1.75 9.00003ZM9 3.25003C5.82421 3.25003 3.25 5.82424 3.25 9.00003C3.25 12.1758 5.82421 14.75 9 14.75C12.1758 14.75 14.75 12.1758 14.75 9.00003C14.75 5.82424 12.1758 3.25003 9 3.25003Z" 
+        fill="currentColor"
+      />
+    </svg>
+  )
+}

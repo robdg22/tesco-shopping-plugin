@@ -1,1 +1,62 @@
-<div id="plugin-root"></div>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tesco Shopping Plugin</title>
+  
+  <!-- Optional: External fallback fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    /* Tesco font declarations */
+    @font-face {
+      font-family: 'TESCOModern-Regular';
+      src: url('TESCOModern-Regular-web.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'TESCOModern-Bold';
+      src: url('TESCOModern-Bold-web.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    
+    /* Global font application */
+    body, html {
+      font-family: 'TESCOModern-Regular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    
+    button, input, select, textarea {
+      font-family: 'TESCOModern-Regular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: inherit;
+    }
+    
+    /* Tesco Modern utility classes */
+    .font-tesco-regular {
+      font-family: 'TESCOModern-Regular', 'Inter', sans-serif;
+      font-weight: 400;
+    }
+    
+    .font-tesco-bold {
+      font-family: 'TESCOModern-Bold', 'TESCOModern-Regular', 'Inter', sans-serif;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div id="plugin-root"></div>
+</body>
+</html>

@@ -28,6 +28,13 @@ module.exports = (env, argv) => ({
           'sass-loader',
         ],
       },
+      {
+        test: /\.(svg|png|jpg|jpeg|gif)$/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/images/[name][ext]',
+        },
+      },
     ],
   },
   plugins: [
@@ -48,6 +55,7 @@ module.exports = (env, argv) => ({
   output: {
     filename: '[name].js?[contenthash]',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '',
     clean: true,
   },
 });

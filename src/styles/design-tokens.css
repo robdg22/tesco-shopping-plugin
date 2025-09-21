@@ -1,0 +1,167 @@
+/* Design System Tokens - Based on Figma Design */
+
+/* Tesco Modern Font Faces - Fallback approach for Figma plugin environment */
+/* Note: In Figma plugin sandbox, custom fonts may not load properly */
+/* Using system fonts as primary with Tesco Modern as aspirational */
+
+:root {
+  /* Colors */
+  --tesco-blue: #00539F;
+  --tesco-blue-hover: #004080;
+  
+  /* Background Colors */
+  --bg-primary: #f6f6f6;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f6f6f6;
+  
+  /* Text Colors */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-placeholder: #666666;
+  
+  /* Border Colors */
+  --border-primary: #e5e5e5;
+  --border-secondary: #e2e2e2;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-neutral: rgba(0, 0, 0, 0.08);
+  
+  /* Shadow Colors */
+  --shadow-sm: 0px 2px 3px 0px rgba(0, 0, 0, 0.05);
+  --shadow-inset-subtle: 0px -1px 2px 0px inset rgba(0, 0, 0, 0.1);
+  
+  /* Typography - Tesco Modern with fallbacks */
+  --font-family-primary: 'TESCOModern-Regular', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-bold: 'TESCOModern-Bold', 'TESCOModern-Regular', 'Inter', sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  
+  /* Font Sizes */
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  
+  /* Line Heights */
+  --leading-sm: 18px;
+  --leading-base: 20px;
+  --leading-lg: 24px;
+  
+  /* Spacing Scale */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-5: 20px;
+  --spacing-6: 24px;
+  
+  /* Container Spacing */
+  --container-padding: 0.75rem; /* 12px with 16px base (12/16 = 0.75) */
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  
+  /* Layout Dimensions */
+  --container-width: 376px;
+  --header-height: auto;
+  --main-height: 494px;
+  --category-card-width: 94px;
+  --search-bar-height: 36px;
+  
+  /* Animation */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 200ms ease-out;
+  --transition-slow: 300ms ease-out;
+  --ease-boop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Typography Classes */
+.text-body-s {
+  font-family: var(--font-family-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--leading-sm);
+}
+
+.text-label-s {
+  font-family: var(--font-family-bold);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--leading-sm);
+}
+
+/* Tesco Modern utility classes */
+.font-tesco-regular {
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-regular);
+  font-size: 0.875rem; /* 14px with 16px base */
+}
+
+.font-tesco-bold {
+  font-family: var(--font-family-bold);
+  font-weight: var(--font-weight-bold);
+  font-size: 0.875rem; /* 14px with 16px base */
+}
+
+/* Explicit font size utilities */
+.text-body-14 {
+  font-size: 14px !important;
+  line-height: 18px;
+}
+
+.text-body-16 {
+  font-size: 16px !important;
+  line-height: 20px;
+}
+
+/* Animation Classes */
+.boop {
+  transition: transform var(--transition-normal) var(--ease-boop);
+}
+
+.boop:hover {
+  transform: scale(1.02);
+}
+
+.boop:active {
+  transform: scale(0.98);
+}
+
+.boop-trigger {
+  animation: boop 300ms var(--ease-boop);
+}
+
+@keyframes boop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Hide scrollbars utility class */
+.scrollbar-hide {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .boop {
+    transition: none;
+  }
+  
+  .boop:hover,
+  .boop:active {
+    transform: none;
+  }
+  
+  .boop-trigger {
+    animation: none;
+  }
+}
