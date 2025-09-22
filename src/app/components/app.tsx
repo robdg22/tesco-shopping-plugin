@@ -3,6 +3,8 @@ import { SearchBar } from '../../components/ui/search-bar';
 import { SearchOverlay } from '../../components/ui/search-overlay';
 import { FilterChipList } from '../../components/ui/filter-chip';
 import { CategoryGrid } from '../../components/ui/category-card';
+import { ProductGrid } from '../../components/ui/product-grid';
+import { Breadcrumb } from '../../components/ui/breadcrumb';
 import type { TaxonomyItem, ProductItem } from '../../types/tesco';
 
 interface AppState {
@@ -15,6 +17,8 @@ interface AppState {
   recentSearches: string[];
   isSearchOverlayOpen: boolean;
   searchSuggestions: Array<{ text: string; query: string }>;
+  viewMode: 'categories' | 'search';
+  selectedProducts: string[];
 }
 
 export class App extends React.Component<{}, AppState> {
@@ -41,6 +45,8 @@ export class App extends React.Component<{}, AppState> {
         { text: 'butter', query: 'butter' },
         { text: 'yogurt', query: 'yogurt' },
       ],
+      viewMode: 'categories',
+      selectedProducts: []
     };
   }
 
@@ -88,9 +94,19 @@ export class App extends React.Component<{}, AppState> {
         
       case 'searchProductsResponse':
         if (msg.data?.data?.search?.productItems) {
-          this.setState({ products: msg.data.data.search.productItems, loading: false });
+          this.setState({ 
+            products: msg.data.data.search.productItems, 
+            loading: false,
+            viewMode: 'search',
+            error: null
+          });
         } else {
-          this.setState({ error: 'No products found', loading: false });
+          this.setState({ 
+            error: 'No products found', 
+            loading: false,
+            viewMode: 'search',
+            products: []
+          });
         }
         break;
         
@@ -153,7 +169,8 @@ export class App extends React.Component<{}, AppState> {
       loading: true, 
       error: null, 
       products: [],
-      searchTerm: query
+      searchTerm: query,
+      viewMode: 'search'
     });
     
     this.sendMessage('searchProducts', {
@@ -167,6 +184,23 @@ export class App extends React.Component<{}, AppState> {
     this.sendMessage('getCategoryProducts', {
       categoryId,
       count: 10,
+    });
+  };
+
+  handleProductSelect = (productId: string) => {
+    this.setState(prevState => ({
+      selectedProducts: prevState.selectedProducts.includes(productId)
+        ? prevState.selectedProducts.filter(id => id !== productId)
+        : [...prevState.selectedProducts, productId]
+    }));
+  };
+
+  backToCategories = () => {
+    this.setState({ 
+      viewMode: 'categories',
+      searchTerm: '',
+      products: [],
+      error: null
     });
   };
 
@@ -299,7 +333,7 @@ export class App extends React.Component<{}, AppState> {
   };
 
   render() {
-    const { searchTerm, loading, error, recentSearches, isSearchOverlayOpen } = this.state;
+    const { searchTerm, loading, error, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
     const formattedCategories = this.getFormattedCategories();
     const filteredSuggestions = this.getFilteredSuggestions();
 
@@ -319,8 +353,16 @@ export class App extends React.Component<{}, AppState> {
             />
           </div>
           
+          {/* Breadcrumb for search results */}
+          {viewMode === 'search' && (
+            <Breadcrumb 
+              onHomeClick={this.backToCategories}
+              resultCount={products.length}
+            />
+          )}
+          
           {/* Recent Searches */}
-          {recentSearches.length > 0 && (
+          {viewMode === 'categories' && recentSearches.length > 0 && (
             <FilterChipList
               chips={recentSearches}
               onChipSelect={this.handleRecentSearchSelect}
@@ -339,13 +381,30 @@ export class App extends React.Component<{}, AppState> {
 
         {/* Main Content */}
         <div className="bg-white h-[494px] w-full max-w-[376px] rounded-xl relative shadow-[0px_2px_3px_0px_rgba(0,0,0,0.05)] border border-[#e2e2e2] overflow-hidden">
-          <CategoryGrid
-            categories={formattedCategories}
-            onCategoryClick={this.browseCategoryProducts}
-            loading={loading}
-            className="p-0"
-            columns={4}
-          />
+          {viewMode === 'categories' ? (
+            <CategoryGrid
+              categories={formattedCategories}
+              onCategoryClick={this.browseCategoryProducts}
+              loading={loading}
+              className="p-0"
+              columns={4}
+            />
+          ) : (
+            <>
+              {/* Search Results */}
+              <div className="h-[494px] overflow-y-auto">
+                <ProductGrid
+                  products={products}
+                  loading={loading}
+                  selectedProducts={selectedProducts}
+                  onProductSelect={this.handleProductSelect}
+                  columns={3}
+                  className="p-0"
+                  emptyMessage={searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
+                />
+              </div>
+            </>
+          )}
           
           {/* Inner shadow overlay */}
           <div 

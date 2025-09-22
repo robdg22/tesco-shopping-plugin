@@ -80,10 +80,25 @@ async function handleSearchProducts(payload?: { query?: string; count?: number }
           brandName
           shortDescription
           defaultImageUrl
+          isNew
           price {
             price: actual
             unitPrice
             unitOfMeasure
+          }
+          promotions {
+            promotionId: id
+            promotionType
+            startDate
+            endDate
+            offerText: description
+          }
+          reviews {
+            stats {
+              noOfReviews
+              overallRating
+              overallRatingRange
+            }
           }
         }
       }

@@ -26,20 +26,81 @@ export interface TaxonomyItem {
 
 export interface ProductItem {
   id: string;
-  name: string;
-  description?: string;
+  baseProductId?: string;
+  title: string;
+  brandName?: string;
+  shortDescription?: string;
+  defaultImageUrl?: string;
+  superDepartmentId?: string;
+  superDepartmentName?: string;
+  departmentId?: string;
+  departmentName?: string;
+  aisleId?: string;
+  aisleName?: string;
+  shelfId?: string;
+  shelfName?: string;
+  displayType?: string;
+  productType?: string;
+  averageWeight?: number;
+  bulkBuyLimit?: number;
+  maxQuantityAllowed?: number;
+  groupBulkBuyLimit?: number;
+  bulkBuyLimitMessage?: string;
+  bulkBuyLimitGroupId?: string;
+  timeRestrictedDelivery?: boolean;
+  restrictedDelivery?: boolean;
+  isForSale?: boolean;
+  isNew?: boolean;
+  isRestrictedOrderAmendment?: boolean;
+  status?: string;
+  maxWeight?: number;
+  minWeight?: number;
+  increment?: number;
   price?: {
-    amount: number;
-    currency: string;
+    price: number;
+    unitPrice?: string;
+    unitOfMeasure?: string;
   };
-  images?: {
-    url: string;
-    width?: number;
-    height?: number;
-  }[];
-  availability?: string;
-  brand?: string;
-  category?: string;
+  promotions?: Array<{
+    id: string;
+    promotionType: string;
+    startDate?: string;
+    endDate?: string;
+    offerText: string;
+  }>;
+  reviews?: {
+    stats: {
+      noOfReviews: number;
+      overallRating: number;
+      overallRatingRange?: number;
+    };
+  };
+  restrictions?: Array<{
+    type: string;
+    isViolated: boolean;
+    message: string;
+  }>;
+  catchWeightList?: Array<{
+    price: number;
+    weight: number;
+    default: boolean;
+  }>;
+  restrictedDeliveryTime?: {
+    day: string;
+    startDateTime: string;
+    endDateTime: string;
+    message: string;
+  };
+  restrictedDeliveryDate?: {
+    startDate: string;
+    endDate: string;
+    leadTimeValue: number;
+    message: string;
+  };
+  unavailableDeliveryDateRange?: {
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export interface SearchResponse {
