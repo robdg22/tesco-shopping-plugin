@@ -6,7 +6,7 @@ import { CategoryGrid } from '../../components/ui/category-card';
 import { ProductGrid } from '../../components/ui/product-grid';
 import { Breadcrumb } from '../../components/ui/breadcrumb';
 import { MeshGradient } from '../../components/ui/mesh-gradient';
-import type { TaxonomyItem, ProductItem } from '../../types/tesco';
+import type { TaxonomyItem, ProductItem, CategoryBreadcrumb, CategoryNavigationState } from '../../types/tesco';
 
 interface AppState {
   searchTerm: string;
@@ -23,6 +23,8 @@ interface AppState {
   totalResults: number;
   hasMoreResults: boolean;
   loadingMore: boolean;
+  // Category navigation state
+  categoryNavigation: CategoryNavigationState;
 }
 
 export class App extends React.Component<{}, AppState> {
@@ -53,7 +55,12 @@ export class App extends React.Component<{}, AppState> {
       selectedProducts: [],
       totalResults: 0,
       hasMoreResults: false,
-      loadingMore: false
+      loadingMore: false,
+      categoryNavigation: {
+        breadcrumbs: [{ id: 'home', name: 'All Categories', level: 'home' }],
+        currentCategoryId: undefined,
+        isShowingProducts: false
+      }
     };
   }
 
@@ -128,9 +135,41 @@ export class App extends React.Component<{}, AppState> {
         
       case 'getCategoryProductsResponse':
         if (msg.data?.data?.category?.productItems) {
-          this.setState({ products: msg.data.data.category.productItems, loading: false });
+          const categoryData = msg.data.data.category;
+          const pageInfo = categoryData.pageInformation;
+          
+          this.setState(prevState => ({
+            products: categoryData.productItems,
+            loading: false,
+            error: null,
+            totalResults: pageInfo?.totalCount || 0,
+            hasMoreResults: (pageInfo?.totalCount || 0) > categoryData.productItems.length,
+            categoryNavigation: {
+              ...prevState.categoryNavigation,
+              isShowingProducts: true
+            },
+            viewMode: 'search' // Show products in the same view as search results
+          }));
         } else {
           this.setState({ error: 'No products found in category', loading: false });
+        }
+        break;
+        
+      case 'getCategoryChildrenResponse':
+        if (msg.data?.data?.taxonomy?.[0]?.children) {
+          const children = msg.data.data.taxonomy[0].children;
+          this.setState({ 
+            categories: children,
+            categoriesLoading: false,
+            loading: false,
+            error: null
+          });
+        } else {
+          this.setState({ 
+            error: 'No child categories found', 
+            categoriesLoading: false,
+            loading: false 
+          });
         }
         break;
         
@@ -213,13 +252,128 @@ export class App extends React.Component<{}, AppState> {
     });
   };
 
-  browseCategoryProducts = (categoryId: string, categoryName?: string) => {
-    this.setState({ loading: true, error: null, products: [] });
-    this.sendMessage('getCategoryProducts', {
-      categoryId,
-      count: 10,
+  navigateToCategory = (categoryId: string, categoryName: string) => {
+    // Determine category level from the ID format
+    const level = this.determineCategoryLevel(categoryId);
+    
+    // Update breadcrumbs
+    const newBreadcrumb: CategoryBreadcrumb = {
+      id: categoryId,
+      name: categoryName,
+      level: level
+    };
+
+    this.setState(prevState => {
+      // Remove any breadcrumbs after the current level to avoid duplicates
+      const filteredBreadcrumbs = prevState.categoryNavigation.breadcrumbs.filter(
+        crumb => this.getLevelOrder(crumb.level) < this.getLevelOrder(level)
+      );
+
+      return {
+        loading: true,
+        categoriesLoading: level !== 'aisle', // Loading categories unless it's aisle level
+        error: null,
+        products: [],
+        categories: level === 'aisle' ? [] : prevState.categories, // Clear categories only for aisle level
+        categoryNavigation: {
+          breadcrumbs: [...filteredBreadcrumbs, newBreadcrumb],
+          currentCategoryId: categoryId,
+          isShowingProducts: level === 'aisle' // Show products only at aisle level
+        },
+        viewMode: level === 'aisle' ? 'search' : 'categories' // Switch to search view for products
+      };
     });
+
+    // Decide whether to load children categories or products
+    if (level === 'aisle') {
+      // Load products for aisle level
+      this.sendMessage('getCategoryProducts', {
+        categoryId,
+        count: 20,
+      });
+    } else {
+      // Load child categories for superdepartment/department levels
+      this.sendMessage('getCategoryChildren', {
+        categoryId,
+      });
+    }
   };
+
+  determineCategoryLevel = (categoryId: string): 'superdepartment' | 'department' | 'aisle' | 'shelf' => {
+    if (categoryId.startsWith('superdepartment:')) return 'superdepartment';
+    if (categoryId.startsWith('department:')) return 'department';
+    if (categoryId.startsWith('aisle:')) return 'aisle';
+    if (categoryId.startsWith('shelf:')) return 'shelf';
+    // Default fallback - assume superdepartment for taxonomy items
+    return 'superdepartment';
+  };
+
+  getLevelOrder = (level: string): number => {
+    const order = { home: 0, superdepartment: 1, department: 2, aisle: 3, shelf: 4 };
+    return order[level as keyof typeof order] || 0;
+  };
+
+  navigateBack = (targetBreadcrumbId: string) => {
+    const { categoryNavigation } = this.state;
+    const targetIndex = categoryNavigation.breadcrumbs.findIndex(crumb => crumb.id === targetBreadcrumbId);
+    
+    if (targetIndex === -1) return;
+
+    const targetBreadcrumb = categoryNavigation.breadcrumbs[targetIndex];
+    
+    if (targetBreadcrumb.id === 'home') {
+      // Navigate back to home - load superdepartments
+      this.setState({
+        loading: false,
+        categoriesLoading: false,
+        error: null,
+        products: [],
+        categoryNavigation: {
+          breadcrumbs: [{ id: 'home', name: 'All Categories', level: 'home' }],
+          currentCategoryId: undefined,
+          isShowingProducts: false
+        },
+        viewMode: 'categories'
+      });
+      
+      // Load the original superdepartments
+      this.sendMessage('getTaxonomy');
+    } else {
+      // Navigate back to a specific category level
+      const newBreadcrumbs = categoryNavigation.breadcrumbs.slice(0, targetIndex + 1);
+      const isAisleLevel = targetBreadcrumb.level === 'aisle';
+      
+      this.setState({
+        loading: true,
+        categoriesLoading: !isAisleLevel,
+        error: null,
+        products: [],
+        categoryNavigation: {
+          breadcrumbs: newBreadcrumbs,
+          currentCategoryId: targetBreadcrumb.id,
+          isShowingProducts: isAisleLevel
+        },
+        viewMode: isAisleLevel ? 'search' : 'categories'
+      });
+
+      // Load appropriate data for the target level
+      if (isAisleLevel) {
+        // Load products for aisle level
+        this.sendMessage('getCategoryProducts', {
+          categoryId: targetBreadcrumb.id,
+          count: 20,
+        });
+      } else {
+        // Load child categories for superdepartment/department levels
+        this.sendMessage('getCategoryChildren', {
+          categoryId: targetBreadcrumb.id,
+        });
+      }
+    }
+  };
+
+  // Legacy method name for backward compatibility
+  browseCategoryProducts = this.navigateToCategory;
 
   handleProductSelect = (productId: string) => {
     this.setState(prevState => ({
@@ -388,10 +542,11 @@ export class App extends React.Component<{}, AppState> {
             />
           </div>
           
-          {/* Breadcrumb for search results */}
+          {/* Breadcrumb for search results and category navigation */}
           {viewMode === 'search' && (
             <Breadcrumb 
-              onHomeClick={this.backToCategories}
+              breadcrumbs={this.state.categoryNavigation.breadcrumbs}
+              onBreadcrumbClick={this.navigateBack}
               resultCount={this.state.totalResults}
             />
           )}

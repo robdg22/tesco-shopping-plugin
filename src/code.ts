@@ -1,6 +1,6 @@
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'searchWithSuggestions';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions';
   payload?: {
     query?: string;
     categoryId?: string;
@@ -27,6 +27,9 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'getCategoryProducts':
         await handleCategoryProducts(msg.payload);
+        break;
+      case 'getCategoryChildren':
+        await handleCategoryChildren(msg.payload);
         break;
       case 'searchWithSuggestions':
         await handleSearchWithSuggestions(msg.payload);
@@ -192,33 +195,165 @@ async function handleGetTaxonomy() {
   }
 }
 
-async function handleCategoryProducts(payload?: { categoryId?: string; count?: number }) {
+async function handleCategoryProducts(payload?: { categoryId?: string; count?: number; offset?: number }) {
   if (!payload?.categoryId) {
     figma.ui.postMessage({ type: 'error', error: 'Category ID is required' });
     return;
   }
 
   const categoryQuery = `
-    query GetCategoryProducts($categoryId: ID, $count: Int) {
-      category(categoryId: $categoryId, count: $count) {
+    query GetCategoryProducts(
+      $facet: ID
+      $page: Int
+      $count: Int
+      $sortBy: String
+      $offset: Int
+      $superDepartment: String
+      $department: String
+      $aisle: String
+      $shelf: String
+      $offers: Boolean
+      $new: Boolean
+      $favourites: Boolean
+      $brand: String
+      $brands: [String]
+      $dietary: String
+      $categoryId: ID
+      $pageName: String
+    ) {
+      category(
+        page: $page
+        count: $count
+        sortBy: $sortBy
+        offset: $offset
+        facet: $facet
+        superDepartment: $superDepartment
+        department: $department
+        aisle: $aisle
+        shelf: $shelf
+        offers: $offers
+        new: $new
+        favourites: $favourites
+        brand: $brand
+        brands: $brands
+        dietary: $dietary
+        categoryId: $categoryId
+      ) {
         pageInformation: info {
-          totalCount: total
-          pageNo: page
-          count
+          ...PageInformation
         }
         productItems: products {
-          id
-          baseProductId
-          title
-          brandName
-          shortDescription
-          defaultImageUrl
-          price {
-            price: actual
-            unitPrice
-            unitOfMeasure
-          }
+          ...ProductItem
         }
+        facetLists: facetGroups {
+          ...FacetLists
+        }
+        options {
+          sortBy
+        }
+      }
+    }
+
+    fragment PageInformation on ListInfoInterface {
+      totalCount: total
+      pageNo: page
+      count
+      pageSize
+      offset
+    }
+
+    fragment ProductItem on ProductInterface {
+      id
+      baseProductId
+      title
+      brandName
+      shortDescription
+      defaultImageUrl
+      media {
+        defaultImage {
+          url
+          aspectRatio
+        }
+        images {
+          url
+          aspectRatio
+        }
+      }
+      badgeDetails(pageName: $pageName) {
+        badges
+        subText
+      }
+      superDepartmentId
+      superDepartmentName
+      departmentId
+      departmentName
+      aisleId
+      aisleName
+      shelfId
+      shelfName
+      displayType
+      productType
+      averageWeight
+      bulkBuyLimit
+      maxQuantityAllowed: bulkBuyLimit
+      groupBulkBuyLimit
+      bulkBuyLimitMessage
+      bulkBuyLimitGroupId
+      timeRestrictedDelivery
+      restrictedDelivery
+      isForSale
+      isNew
+      isRestrictedOrderAmendment
+      status
+      maxWeight
+      minWeight
+      increment
+      catchWeightList {
+        price
+        weight
+        default
+      }
+      restrictedDeliveryTime {
+        day
+        startDateTime
+        endDateTime
+        message
+      }
+      restrictedDeliveryDate {
+        startDate
+        endDate
+        leadTimeValue
+        message
+      }
+      price {
+        price: actual
+        unitPrice
+        unitOfMeasure
+      }
+      promotions {
+        promotionId: id
+        promotionType
+        startDate
+        endDate
+        offerText: description
+      }
+      reviews {
+        stats {
+          noOfReviews
+          overallRating
+          overallRatingRange
+        }
+      }
+    }
+
+    fragment FacetLists on ProductListFacetGroupInterface {
+      categoryId
+      category
+      facets {
+        facetId: id
+        facetName: name
+        binCount: count
+        isSelected: selected
       }
     }
   `;
@@ -226,7 +361,9 @@ async function handleCategoryProducts(payload?: { categoryId?: string; count?: n
   try {
     const result = await makeGraphQLRequest(categoryQuery, {
       categoryId: payload.categoryId,
-      count: payload.count || 10,
+      pageName: "browse",
+      count: payload.count || 20,
+      offset: payload.offset || 0,
     });
 
     figma.ui.postMessage({
@@ -237,6 +374,67 @@ async function handleCategoryProducts(payload?: { categoryId?: string; count?: n
     figma.ui.postMessage({
       type: 'error',
       error: `Failed to load category products: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+async function handleCategoryChildren(payload?: { categoryId?: string }) {
+  if (!payload?.categoryId) {
+    figma.ui.postMessage({ type: 'error', error: 'Category ID is required' });
+    return;
+  }
+
+  const childrenQuery = `
+    query GetCategoryChildren($categoryId: String, $storeId: ID) {
+      taxonomy(storeId: $storeId, categoryId: $categoryId) {
+        id
+        name
+        label
+        pageType
+        images {
+          style
+          images {
+            type
+            url
+            __typename
+          }
+          __typename
+        }
+        children {
+          id
+          name
+          label
+          pageType
+          images {
+            style
+            images {
+              type
+              url
+              __typename
+            }
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+    }
+  `;
+
+  try {
+    const result = await makeGraphQLRequest(childrenQuery, {
+      categoryId: payload.categoryId,
+      storeId: "3060",
+    });
+
+    figma.ui.postMessage({
+      type: 'getCategoryChildrenResponse',
+      data: result,
+    });
+  } catch (error) {
+    figma.ui.postMessage({
+      type: 'error',
+      error: `Failed to load category children: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
   }
 }

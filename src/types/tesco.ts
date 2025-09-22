@@ -198,3 +198,25 @@ export interface SearchWithSuggestionsResponse {
     };
   };
 }
+
+// Category Hierarchy Navigation Types
+export interface CategoryBreadcrumb {
+  id: string;
+  name: string;
+  level: 'home' | 'superdepartment' | 'department' | 'aisle' | 'shelf';
+}
+
+export interface CategoryNavigationState {
+  breadcrumbs: CategoryBreadcrumb[];
+  currentCategoryId?: string;
+  isShowingProducts: boolean;
+}
+
+export interface CategoryHierarchyLevel {
+  id: string;
+  name: string;
+  level: 'superdepartment' | 'department' | 'aisle' | 'shelf';
+  parentId?: string;
+  hasChildren: boolean;
+  hasProducts: boolean;
+}
