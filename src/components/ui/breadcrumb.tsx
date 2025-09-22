@@ -36,7 +36,9 @@ export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, classN
             
             {/* Category name for non-home breadcrumbs */}
             {breadcrumb.level !== 'home' && (
-              <span className="font-tesco-regular leading-4 text-[#00539F] text-xs whitespace-nowrap max-w-[100px] truncate">
+              <span className={`font-tesco-regular leading-4 text-xs whitespace-nowrap max-w-[100px] truncate ${
+                index === breadcrumbs.length - 1 ? 'text-[#666666]' : 'text-[#00539F]'
+              }`}>
                 {breadcrumb.name}
               </span>
             )}
@@ -56,8 +58,8 @@ export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, classN
         </React.Fragment>
       ))}
 
-      {/* Final arrow and results text */}
-      {breadcrumbs.length > 0 && (
+      {/* Final arrow and results text - only for search results */}
+      {breadcrumbs.length > 0 && resultCount !== undefined && (
         <div className="flex gap-[2px] items-center justify-start">
           {/* Forward Arrow */}
           <div className="relative shrink-0 size-4">

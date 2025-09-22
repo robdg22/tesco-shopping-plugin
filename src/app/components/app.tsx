@@ -551,8 +551,8 @@ export class App extends React.Component<{}, AppState> {
             />
           )}
           
-          {/* Recent Searches */}
-          {viewMode === 'categories' && recentSearches.length > 0 && (
+          {/* Recent Searches - only show when at home level */}
+          {viewMode === 'categories' && recentSearches.length > 0 && this.state.categoryNavigation.breadcrumbs.length === 1 && (
             <FilterChipList
               chips={recentSearches}
               onChipSelect={this.handleRecentSearchSelect}
