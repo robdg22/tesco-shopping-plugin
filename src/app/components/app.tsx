@@ -25,6 +25,11 @@ interface AppState {
   loadingMore: boolean;
   // Category navigation state
   categoryNavigation: CategoryNavigationState;
+  // Scroll fade effects
+  scrollState: {
+    scrollTop: number;
+    canScrollDown: boolean;
+  };
 }
 
 export class App extends React.Component<{}, AppState> {
@@ -60,6 +65,10 @@ export class App extends React.Component<{}, AppState> {
         breadcrumbs: [{ id: 'home', name: 'All Categories', level: 'home' }],
         currentCategoryId: undefined,
         isShowingProducts: false
+      },
+      scrollState: {
+        scrollTop: 0,
+        canScrollDown: false
       }
     };
   }
@@ -375,6 +384,21 @@ export class App extends React.Component<{}, AppState> {
   // Legacy method name for backward compatibility
   browseCategoryProducts = this.navigateToCategory;
 
+  handleContentScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement;
+    const scrollTop = target.scrollTop;
+    const scrollHeight = target.scrollHeight;
+    const clientHeight = target.clientHeight;
+    const canScrollDown = scrollHeight > clientHeight && scrollTop < scrollHeight - clientHeight - 1;
+
+    this.setState({
+      scrollState: {
+        scrollTop,
+        canScrollDown
+      }
+    });
+  };
+
   handleProductSelect = (productId: string) => {
     this.setState(prevState => ({
       selectedProducts: prevState.selectedProducts.includes(productId)
@@ -577,30 +601,88 @@ export class App extends React.Component<{}, AppState> {
           }}
         >
           {viewMode === 'categories' ? (
-            <CategoryGrid
-              categories={formattedCategories}
-              onCategoryClick={this.browseCategoryProducts}
-              loading={categoriesLoading}
-              className="p-0"
-              columns={4}
-            />
+            <>
+              {/* Category Content with Scroll Detection */}
+              <div 
+                className="h-[494px] overflow-y-auto scrollbar-hide"
+                onScroll={this.handleContentScroll}
+              >
+                <CategoryGrid
+                  categories={formattedCategories}
+                  onCategoryClick={this.browseCategoryProducts}
+                  loading={categoriesLoading}
+                  columns={4}
+                />
+              </div>
+              
+              {/* Top Fade - Progressive */}
+              {this.state.scrollState.scrollTop > 0 && (
+                <div 
+                  className="absolute top-0 left-0 right-0 pointer-events-none z-10"
+                  style={{
+                    height: '12px',
+                    background: `linear-gradient(to bottom, rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, rgba(255, 255, 255, 0) 100%)`,
+                    backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 40, 2)}px)`
+                  }}
+                />
+              )}
+              
+              {/* Bottom Fade - Always when can scroll */}
+              {this.state.scrollState.canScrollDown && (
+                <div 
+                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  style={{
+                    height: '12px',
+                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                />
+              )}
+            </>
           ) : (
             <>
-              {/* Search Results */}
-              <div className="h-[494px] overflow-y-auto scrollbar-hide">
+              {/* Search Results with Scroll Detection */}
+              <div 
+                className="h-[494px] overflow-y-auto scrollbar-hide"
+                onScroll={this.handleContentScroll}
+              >
                 <ProductGrid
                   products={products}
                   loading={loading}
                   selectedProducts={selectedProducts}
                   onProductSelect={this.handleProductSelect}
                   columns={3}
-                  className="p-0"
+                  className="p-3"
                   emptyMessage={searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
                   hasMoreResults={this.state.hasMoreResults}
                   loadingMore={this.state.loadingMore}
                   onLoadMore={this.loadMoreProducts}
                 />
               </div>
+              
+              {/* Top Fade - Progressive */}
+              {this.state.scrollState.scrollTop > 0 && (
+                <div 
+                  className="absolute top-0 left-0 right-0 pointer-events-none z-10"
+                  style={{
+                    height: '12px',
+                    background: `linear-gradient(to bottom, rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, rgba(255, 255, 255, 0) 100%)`,
+                    backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 40, 2)}px)`
+                  }}
+                />
+              )}
+              
+              {/* Bottom Fade - Always when can scroll */}
+              {this.state.scrollState.canScrollDown && (
+                <div 
+                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  style={{
+                    height: '12px',
+                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                    backdropFilter: 'blur(2px)'
+                  }}
+                />
+              )}
             </>
           )}
           

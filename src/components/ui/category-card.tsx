@@ -116,7 +116,7 @@ export function CategoryGrid({
   if (loading) {
     return (
       <div className={cn(
-        "w-full h-full overflow-y-auto scrollbar-hide p-0",
+        "w-full p-3",
         className
       )}>
         <div className={cn(
@@ -131,7 +131,7 @@ export function CategoryGrid({
 
   return (
     <div className={cn(
-      "w-full h-full overflow-y-auto scrollbar-hide p-0",
+      "w-full p-3",
       className
     )}>
       <div className={cn(
