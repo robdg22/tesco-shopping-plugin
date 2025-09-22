@@ -615,28 +615,42 @@ export class App extends React.Component<{}, AppState> {
                 />
               </div>
               
-              {/* Top Fade - Progressive */}
+              {/* Top Fade - Progressive with Clipping */}
               {this.state.scrollState.scrollTop > 0 && (
                 <div 
-                  className="absolute top-0 left-0 right-0 pointer-events-none z-10"
+                  className="absolute top-0 left-0 right-0 pointer-events-none z-10 rounded-t-xl overflow-hidden"
                   style={{
                     height: '12px',
-                    background: `linear-gradient(to bottom, rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, rgba(255, 255, 255, 0) 100%)`,
-                    backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 40, 2)}px)`
                   }}
-                />
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={{
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 20, 12)}px)`
+                    }}
+                  />
+                </div>
               )}
               
-              {/* Bottom Fade - Always when can scroll */}
+              {/* Bottom Fade - Always when can scroll with Clipping */}
               {this.state.scrollState.canScrollDown && (
                 <div 
-                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10 rounded-b-xl overflow-hidden"
                   style={{
                     height: '12px',
-                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
-                    backdropFilter: 'blur(2px)'
                   }}
-                />
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={{
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(12px)'
+                    }}
+                  />
+                </div>
               )}
             </>
           ) : (
@@ -660,28 +674,42 @@ export class App extends React.Component<{}, AppState> {
                 />
               </div>
               
-              {/* Top Fade - Progressive */}
+              {/* Top Fade - Progressive with Clipping */}
               {this.state.scrollState.scrollTop > 0 && (
                 <div 
-                  className="absolute top-0 left-0 right-0 pointer-events-none z-10"
+                  className="absolute top-0 left-0 right-0 pointer-events-none z-10 rounded-t-xl overflow-hidden"
                   style={{
                     height: '12px',
-                    background: `linear-gradient(to bottom, rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, rgba(255, 255, 255, 0) 100%)`,
-                    backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 40, 2)}px)`
                   }}
-                />
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={{
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 20, 12)}px)`
+                    }}
+                  />
+                </div>
               )}
               
-              {/* Bottom Fade - Always when can scroll */}
+              {/* Bottom Fade - Always when can scroll with Clipping */}
               {this.state.scrollState.canScrollDown && (
                 <div 
-                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10"
+                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10 rounded-b-xl overflow-hidden"
                   style={{
                     height: '12px',
-                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
-                    backdropFilter: 'blur(2px)'
                   }}
-                />
+                >
+                  <div 
+                    className="w-full h-full"
+                    style={{
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(12px)'
+                    }}
+                  />
+                </div>
               )}
             </>
           )}
