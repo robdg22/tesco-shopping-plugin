@@ -253,8 +253,10 @@ export class App extends React.Component<{}, AppState> {
   };
 
   navigateToCategory = (categoryId: string, categoryName: string) => {
-    // Determine category level from the ID format
-    const level = this.determineCategoryLevel(categoryId);
+    // Determine level based on current navigation depth
+    const currentDepth = this.state.categoryNavigation.breadcrumbs.length;
+    const levelMap = ['home', 'superdepartment', 'department', 'aisle', 'shelf'] as const;
+    const level = levelMap[currentDepth] || 'shelf';
     
     // Update breadcrumbs
     const newBreadcrumb: CategoryBreadcrumb = {
@@ -264,29 +266,27 @@ export class App extends React.Component<{}, AppState> {
     };
 
     this.setState(prevState => {
-      // Remove any breadcrumbs after the current level to avoid duplicates
-      const filteredBreadcrumbs = prevState.categoryNavigation.breadcrumbs.filter(
-        crumb => this.getLevelOrder(crumb.level) < this.getLevelOrder(level)
-      );
-
+      const newBreadcrumbs = [...prevState.categoryNavigation.breadcrumbs, newBreadcrumb];
+      const shouldShowProducts = level === 'aisle' || level === 'shelf'; // Show products for aisle and shelf
+      
       return {
         loading: true,
-        categoriesLoading: level !== 'aisle', // Loading categories unless it's aisle level
+        categoriesLoading: !shouldShowProducts, // Loading categories unless showing products
         error: null,
         products: [],
-        categories: level === 'aisle' ? [] : prevState.categories, // Clear categories only for aisle level
+        categories: shouldShowProducts ? [] : prevState.categories, // Clear categories only when showing products
         categoryNavigation: {
-          breadcrumbs: [...filteredBreadcrumbs, newBreadcrumb],
+          breadcrumbs: newBreadcrumbs,
           currentCategoryId: categoryId,
-          isShowingProducts: level === 'aisle' // Show products only at aisle level
+          isShowingProducts: shouldShowProducts
         },
-        viewMode: level === 'aisle' ? 'search' : 'categories' // Switch to search view for products
+        viewMode: shouldShowProducts ? 'search' : 'categories' // Switch to search view for products
       };
     });
 
     // Decide whether to load children categories or products
-    if (level === 'aisle') {
-      // Load products for aisle level
+    if (level === 'aisle' || level === 'shelf') {
+      // Load products for aisle/shelf level
       this.sendMessage('getCategoryProducts', {
         categoryId,
         count: 20,
@@ -341,24 +341,24 @@ export class App extends React.Component<{}, AppState> {
     } else {
       // Navigate back to a specific category level
       const newBreadcrumbs = categoryNavigation.breadcrumbs.slice(0, targetIndex + 1);
-      const isAisleLevel = targetBreadcrumb.level === 'aisle';
+      const shouldShowProducts = targetBreadcrumb.level === 'aisle' || targetBreadcrumb.level === 'shelf';
       
       this.setState({
         loading: true,
-        categoriesLoading: !isAisleLevel,
+        categoriesLoading: !shouldShowProducts,
         error: null,
         products: [],
         categoryNavigation: {
           breadcrumbs: newBreadcrumbs,
           currentCategoryId: targetBreadcrumb.id,
-          isShowingProducts: isAisleLevel
+          isShowingProducts: shouldShowProducts
         },
-        viewMode: isAisleLevel ? 'search' : 'categories'
+        viewMode: shouldShowProducts ? 'search' : 'categories'
       });
 
       // Load appropriate data for the target level
-      if (isAisleLevel) {
-        // Load products for aisle level
+      if (shouldShowProducts) {
+        // Load products for aisle/shelf level
         this.sendMessage('getCategoryProducts', {
           categoryId: targetBreadcrumb.id,
           count: 20,
@@ -543,11 +543,11 @@ export class App extends React.Component<{}, AppState> {
           </div>
           
           {/* Breadcrumb for search results and category navigation */}
-          {viewMode === 'search' && (
+          {(viewMode === 'search' || this.state.categoryNavigation.breadcrumbs.length > 1) && (
             <Breadcrumb 
               breadcrumbs={this.state.categoryNavigation.breadcrumbs}
               onBreadcrumbClick={this.navigateBack}
-              resultCount={this.state.totalResults}
+              resultCount={viewMode === 'search' ? this.state.totalResults : undefined}
             />
           )}
           
