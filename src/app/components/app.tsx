@@ -547,7 +547,7 @@ export class App extends React.Component<{}, AppState> {
             <Breadcrumb 
               breadcrumbs={this.state.categoryNavigation.breadcrumbs}
               onBreadcrumbClick={this.navigateBack}
-              resultCount={viewMode === 'search' ? this.state.totalResults : undefined}
+              resultCount={viewMode === 'search' && !this.state.categoryNavigation.isShowingProducts ? this.state.totalResults : undefined}
             />
           )}
           
