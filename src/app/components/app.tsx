@@ -623,13 +623,36 @@ export class App extends React.Component<{}, AppState> {
                     height: '12px',
                   }}
                 >
+                  {/* Layer 1: 1px blur - full height */}
                   <div 
-                    className="w-full h-full"
+                    className="absolute inset-0"
                     style={{
                       background: `linear-gradient(to bottom, 
-                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.3}) 0%, 
                         rgba(255, 255, 255, 0) 100%)`,
-                      backdropFilter: `blur(${1 + Math.min(this.state.scrollState.scrollTop / 20, 1) * 5}px)`
+                      backdropFilter: 'blur(1px)'
+                    }}
+                  />
+                  {/* Layer 2: 3px blur - 80% height */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      height: '80%',
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.4}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: 'blur(3px)'
+                    }}
+                  />
+                  {/* Layer 3: 6px blur - 50% height */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      height: '50%',
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.3}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: 'blur(6px)'
                     }}
                   />
                 </div>
@@ -643,10 +666,29 @@ export class App extends React.Component<{}, AppState> {
                     height: '12px',
                   }}
                 >
+                  {/* Layer 1: 1px blur - full height */}
                   <div 
-                    className="w-full h-full"
+                    className="absolute inset-0"
                     style={{
-                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(1px)'
+                    }}
+                  />
+                  {/* Layer 2: 3px blur - 80% height from bottom */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0"
+                    style={{
+                      height: '80%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(3px)'
+                    }}
+                  />
+                  {/* Layer 3: 6px blur - 50% height from bottom */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0"
+                    style={{
+                      height: '50%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)',
                       backdropFilter: 'blur(6px)'
                     }}
                   />
@@ -682,13 +724,36 @@ export class App extends React.Component<{}, AppState> {
                     height: '12px',
                   }}
                 >
+                  {/* Layer 1: 1px blur - full height */}
                   <div 
-                    className="w-full h-full"
+                    className="absolute inset-0"
                     style={{
                       background: `linear-gradient(to bottom, 
-                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.3}) 0%, 
                         rgba(255, 255, 255, 0) 100%)`,
-                      backdropFilter: `blur(${1 + Math.min(this.state.scrollState.scrollTop / 20, 1) * 5}px)`
+                      backdropFilter: 'blur(1px)'
+                    }}
+                  />
+                  {/* Layer 2: 3px blur - 80% height */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      height: '80%',
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.4}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: 'blur(3px)'
+                    }}
+                  />
+                  {/* Layer 3: 6px blur - 50% height */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      height: '50%',
+                      background: `linear-gradient(to bottom, 
+                        rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1) * 0.3}) 0%, 
+                        rgba(255, 255, 255, 0) 100%)`,
+                      backdropFilter: 'blur(6px)'
                     }}
                   />
                 </div>
@@ -702,10 +767,29 @@ export class App extends React.Component<{}, AppState> {
                     height: '12px',
                   }}
                 >
+                  {/* Layer 1: 1px blur - full height */}
                   <div 
-                    className="w-full h-full"
+                    className="absolute inset-0"
                     style={{
-                      background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(1px)'
+                    }}
+                  />
+                  {/* Layer 2: 3px blur - 80% height from bottom */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0"
+                    style={{
+                      height: '80%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)',
+                      backdropFilter: 'blur(3px)'
+                    }}
+                  />
+                  {/* Layer 3: 6px blur - 50% height from bottom */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0"
+                    style={{
+                      height: '50%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%)',
                       backdropFilter: 'blur(6px)'
                     }}
                   />
