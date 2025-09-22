@@ -629,7 +629,7 @@ export class App extends React.Component<{}, AppState> {
                       background: `linear-gradient(to bottom, 
                         rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
                         rgba(255, 255, 255, 0) 100%)`,
-                      backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 20, 12)}px)`
+                      backdropFilter: `blur(${1 + Math.min(this.state.scrollState.scrollTop / 20, 1) * 5}px)`
                     }}
                   />
                 </div>
@@ -647,7 +647,7 @@ export class App extends React.Component<{}, AppState> {
                     className="w-full h-full"
                     style={{
                       background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
-                      backdropFilter: 'blur(12px)'
+                      backdropFilter: 'blur(6px)'
                     }}
                   />
                 </div>
@@ -688,7 +688,7 @@ export class App extends React.Component<{}, AppState> {
                       background: `linear-gradient(to bottom, 
                         rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
                         rgba(255, 255, 255, 0) 100%)`,
-                      backdropFilter: `blur(${Math.min(this.state.scrollState.scrollTop / 20, 12)}px)`
+                      backdropFilter: `blur(${1 + Math.min(this.state.scrollState.scrollTop / 20, 1) * 5}px)`
                     }}
                   />
                 </div>
@@ -706,7 +706,7 @@ export class App extends React.Component<{}, AppState> {
                     className="w-full h-full"
                     style={{
                       background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)',
-                      backdropFilter: 'blur(12px)'
+                      backdropFilter: 'blur(6px)'
                     }}
                   />
                 </div>
