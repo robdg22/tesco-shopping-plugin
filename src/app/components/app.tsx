@@ -5,6 +5,7 @@ import { FilterChipList } from '../../components/ui/filter-chip';
 import { CategoryGrid } from '../../components/ui/category-card';
 import { ProductGrid } from '../../components/ui/product-grid';
 import { Breadcrumb } from '../../components/ui/breadcrumb';
+import { MeshGradient } from '../../components/ui/mesh-gradient';
 import type { TaxonomyItem, ProductItem } from '../../types/tesco';
 
 interface AppState {
@@ -19,6 +20,9 @@ interface AppState {
   searchSuggestions: Array<{ text: string; query: string }>;
   viewMode: 'categories' | 'search';
   selectedProducts: string[];
+  totalResults: number;
+  hasMoreResults: boolean;
+  loadingMore: boolean;
 }
 
 export class App extends React.Component<{}, AppState> {
@@ -46,7 +50,10 @@ export class App extends React.Component<{}, AppState> {
         { text: 'yogurt', query: 'yogurt' },
       ],
       viewMode: 'categories',
-      selectedProducts: []
+      selectedProducts: [],
+      totalResults: 0,
+      hasMoreResults: false,
+      loadingMore: false
     };
   }
 
@@ -94,11 +101,20 @@ export class App extends React.Component<{}, AppState> {
         
       case 'searchProductsResponse':
         if (msg.data?.data?.search?.productItems) {
+          const searchData = msg.data.data.search;
+          const pageInfo = searchData.pageInformation;
+          const isLoadMore = this.state.loadingMore;
+          
           this.setState({ 
-            products: msg.data.data.search.productItems, 
+            products: isLoadMore 
+              ? [...this.state.products, ...searchData.productItems]
+              : searchData.productItems,
             loading: false,
+            loadingMore: false,
             viewMode: 'search',
-            error: null
+            error: null,
+            totalResults: pageInfo?.totalCount || 0,
+            hasMoreResults: (pageInfo?.totalCount || 0) > (this.state.products.length + searchData.productItems.length)
           });
         } else {
           this.setState({ 
@@ -170,12 +186,30 @@ export class App extends React.Component<{}, AppState> {
       error: null, 
       products: [],
       searchTerm: query,
-      viewMode: 'search'
+      viewMode: 'search',
+      totalResults: 0,
+      hasMoreResults: false,
+      loadingMore: false
     });
     
     this.sendMessage('searchProducts', {
       query,
       count: 20,
+      offset: 0
+    });
+  };
+
+  loadMoreProducts = () => {
+    const { searchTerm, products, hasMoreResults, loadingMore } = this.state;
+    
+    if (!hasMoreResults || loadingMore || !searchTerm.trim()) return;
+    
+    this.setState({ loadingMore: true });
+    
+    this.sendMessage('searchProducts', {
+      query: searchTerm,
+      count: 20,
+      offset: products.length
     });
   };
 
@@ -333,14 +367,15 @@ export class App extends React.Component<{}, AppState> {
   };
 
   render() {
-    const { searchTerm, loading, error, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
+    const { searchTerm, loading, categoriesLoading, error, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
     const formattedCategories = this.getFormattedCategories();
     const filteredSuggestions = this.getFilteredSuggestions();
 
     return (
-      <div className="bg-[#f6f6f6] flex flex-col items-center justify-start w-full h-full gap-3" style={{ padding: '0.75rem' }}>
-        {/* Header */}
-        <div className="flex flex-col gap-3 items-start justify-start w-full">
+      <MeshGradient className="w-full h-full">
+        <div className="flex flex-col items-center justify-start w-full h-full gap-3" style={{ padding: '0.75rem' }}>
+          {/* Header */}
+          <div className="flex flex-col gap-3 items-start justify-start w-full">
           {/* Search Bar */}
           <div className="flex gap-6 items-center justify-start w-full">
             <SearchBar
@@ -357,7 +392,7 @@ export class App extends React.Component<{}, AppState> {
           {viewMode === 'search' && (
             <Breadcrumb 
               onHomeClick={this.backToCategories}
-              resultCount={products.length}
+              resultCount={this.state.totalResults}
             />
           )}
           
@@ -380,19 +415,24 @@ export class App extends React.Component<{}, AppState> {
         )}
 
         {/* Main Content */}
-        <div className="bg-white h-[494px] w-full max-w-[376px] rounded-xl relative shadow-[0px_2px_3px_0px_rgba(0,0,0,0.05)] border border-[#e2e2e2] overflow-hidden">
+        <div 
+          className="bg-white h-[494px] w-full max-w-[376px] rounded-xl relative overflow-hidden"
+          style={{
+            boxShadow: '0 -1px 0 0 rgba(0, 0, 0, 0.04) inset, 0 1px 0 0 rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 1px -0.5px rgba(0, 0, 0, 0.04), 0 2px 2px -1px rgba(0, 0, 0, 0.04), 0 4px 4px -2px rgba(0, 0, 0, 0.04), 0 8px 8px -4px rgba(0, 0, 0, 0.04), 0 0 0 2px rgba(255, 255, 255, 0.20)'
+          }}
+        >
           {viewMode === 'categories' ? (
             <CategoryGrid
               categories={formattedCategories}
               onCategoryClick={this.browseCategoryProducts}
-              loading={loading}
+              loading={categoriesLoading}
               className="p-0"
               columns={4}
             />
           ) : (
             <>
               {/* Search Results */}
-              <div className="h-[494px] overflow-y-auto">
+              <div className="h-[494px] overflow-y-auto scrollbar-hide">
                 <ProductGrid
                   products={products}
                   loading={loading}
@@ -401,6 +441,9 @@ export class App extends React.Component<{}, AppState> {
                   columns={3}
                   className="p-0"
                   emptyMessage={searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
+                  hasMoreResults={this.state.hasMoreResults}
+                  loadingMore={this.state.loadingMore}
+                  onLoadMore={this.loadMoreProducts}
                 />
               </div>
             </>
@@ -427,7 +470,8 @@ export class App extends React.Component<{}, AppState> {
           onSearch={this.searchProducts}
           loading={loading}
         />
-      </div>
+        </div>
+      </MeshGradient>
     );
   }
 }

@@ -9,51 +9,34 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ onHomeClick, resultCount, className }: BreadcrumbProps) {
   return (
-    <div className={cn("flex gap-0.5 h-6 items-center justify-center max-w-[664px]", className)}>
-      {/* Home Icon */}
+    <div className={cn("flex gap-[2px] items-center justify-center max-w-[664px]", className)}>
+      {/* Home Icon - using actual SVG file at full 16px size */}
       <button
         onClick={onHomeClick}
-        className="relative shrink-0 w-[12.8px] h-[12.8px] hover:opacity-70 transition-opacity"
+        className="relative shrink-0 size-4 hover:opacity-70 transition-opacity"
         aria-label="Back to categories"
       >
-        <div className="absolute inset-[14.38%_18.13%]">
-          <svg 
-            className="w-full h-full text-[#00539f]" 
-            viewBox="0 0 16 17" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path 
-              fillRule="evenodd" 
-              clipRule="evenodd" 
-              d="M8.00002 2.85364L2.90002 6.90364V14.2536H6.50002V9.45364H9.50002V14.2536H13.1V6.90364L8.00002 2.85364Z" 
-              stroke="currentColor" 
-              strokeWidth="1.5"
-            />
-          </svg>
-        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path 
+            fillRule="evenodd" 
+            clipRule="evenodd" 
+            d="M8.14248 2.29724L3.04248 6.34724V13.6972H6.64248V8.89724H9.64248V13.6972H13.2425V6.34724L8.14248 2.29724Z" 
+            stroke="#00539F" 
+            strokeWidth="1.5"
+          />
+        </svg>
       </button>
 
       {/* Forward Arrow + Results Text */}
-      <div className="flex gap-0.5 items-center justify-start">
-        {/* Forward Arrow */}
-        <div className="relative shrink-0 w-[10.24px] h-[10.24px]">
-          <div className="absolute inset-[10.58%_25.43%_10.61%_27.21%]">
-            <svg 
-              className="w-full h-full text-[#333333]" 
-              viewBox="0 0 5 8" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                d="M1 1L4 4L1 7" 
-                stroke="currentColor" 
-                strokeWidth="1.5" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+      <div className="flex gap-[2px] items-center justify-start">
+        {/* Forward Arrow - using actual SVG file at full 16px size */}
+        <div className="relative shrink-0 size-4">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path 
+              d="M4.35352 2.77147L9.77073 7.99956L4.35377 13.2226L5.39492 14.3024L11.9313 8.00006L5.39517 1.69214L4.35352 2.77147Z" 
+              fill="#666666"
+            />
+          </svg>
         </div>
 
         {/* Results Text */}

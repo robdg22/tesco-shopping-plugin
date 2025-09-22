@@ -5,6 +5,7 @@ interface TescoAPIMessage {
     query?: string;
     categoryId?: string;
     count?: number;
+    offset?: number;
     suggestionsCount?: number;
   };
 }
@@ -59,15 +60,15 @@ async function makeGraphQLRequest(query: string, variables: Record<string, any> 
   return response.json();
 }
 
-async function handleSearchProducts(payload?: { query?: string; count?: number }) {
+async function handleSearchProducts(payload?: { query?: string; count?: number; offset?: number }) {
   if (!payload?.query) {
     figma.ui.postMessage({ type: 'error', error: 'Search query is required' });
     return;
   }
 
   const searchQuery = `
-    query SearchProducts($query: String!, $count: Int) {
-      search(query: $query, count: $count) {
+    query SearchProducts($query: String!, $count: Int, $offset: Int) {
+      search(query: $query, count: $count, offset: $offset) {
         pageInformation: info {
           totalCount: total
           pageNo: page
@@ -80,6 +81,16 @@ async function handleSearchProducts(payload?: { query?: string; count?: number }
           brandName
           shortDescription
           defaultImageUrl
+          media {
+            defaultImage {
+              url
+              aspectRatio
+            }
+            images {
+              url
+              aspectRatio
+            }
+          }
           isNew
           price {
             price: actual
@@ -108,7 +119,8 @@ async function handleSearchProducts(payload?: { query?: string; count?: number }
   try {
     const result = await makeGraphQLRequest(searchQuery, {
       query: payload.query,
-      count: payload.count || 10,
+      count: payload.count || 20,
+      offset: payload.offset || 0,
     });
 
     figma.ui.postMessage({

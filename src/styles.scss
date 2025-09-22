@@ -9,6 +9,33 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
   }
+  
+.scrollbar-hide {
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Mesh gradient animation */
+@keyframes meshMove {
+  0%, 100% {
+    background-position: 0% 0%, 100% 100%, 0% 100%, 100% 0%, 50% 50%;
+  }
+  25% {
+    background-position: 100% 0%, 0% 100%, 100% 100%, 0% 0%, 60% 40%;
+  }
+  50% {
+    background-position: 100% 100%, 0% 0%, 100% 0%, 0% 100%, 40% 60%;
+  }
+  75% {
+    background-position: 0% 100%, 100% 0%, 0% 0%, 100% 100%, 55% 45%;
+  }
+}
 }
 
 @layer base {

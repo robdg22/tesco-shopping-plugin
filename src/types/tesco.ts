@@ -31,6 +31,16 @@ export interface ProductItem {
   brandName?: string;
   shortDescription?: string;
   defaultImageUrl?: string;
+  media?: {
+    defaultImage?: {
+      url: string;
+      aspectRatio?: number;
+    };
+    images?: Array<{
+      url: string;
+      aspectRatio?: number;
+    }>;
+  };
   superDepartmentId?: string;
   superDepartmentName?: string;
   departmentId?: string;

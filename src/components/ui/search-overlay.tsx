@@ -186,13 +186,13 @@ export function SearchOverlay({
          <div 
            className={cn(
              "bg-white/80 backdrop-blur-[6px] rounded-[20px] overflow-hidden",
-             "border border-[#e5e5e5] shadow-[0px_2px_3px_0px_rgba(0,0,0,0.05)]",
              "transition-all duration-200 ease-out transform",
              "animate-in slide-in-from-top-2 fade-in-0"
            )}
            style={{
              height: `${searchBarHeight}px`,
-             boxSizing: 'border-box'
+             boxSizing: 'border-box',
+             boxShadow: '0 -1px 0 0 rgba(0, 0, 0, 0.04) inset, 0 1px 0 0 rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 1px -0.5px rgba(0, 0, 0, 0.04), 0 2px 2px -1px rgba(0, 0, 0, 0.04), 0 4px 4px -2px rgba(0, 0, 0, 0.04), 0 8px 8px -4px rgba(0, 0, 0, 0.04), 0 0 0 2px rgba(255, 255, 255, 0.20)'
            }}
          >
           {/* Search input container */}

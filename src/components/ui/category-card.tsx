@@ -1,12 +1,12 @@
 import * as React from "react"
 import { cn } from "../../lib/utils"
+import { CategorySkeletonGrid } from "./category-skeleton"
 
 interface CategoryCardProps {
   id: string
   name: string
   imageUrl?: string
   onClick?: (id: string, name: string) => void
-  loading?: boolean
   className?: string
 }
 
@@ -14,15 +14,14 @@ export function CategoryCard({
   id, 
   name, 
   imageUrl, 
-  onClick, 
-  loading = false,
+  onClick,
   className 
 }: CategoryCardProps) {
   const [imageLoaded, setImageLoaded] = React.useState(false)
   const [imageError, setImageError] = React.useState(false)
 
   const handleClick = () => {
-    if (onClick && !loading) {
+    if (onClick) {
       onClick(id, name)
     }
   }
@@ -43,7 +42,6 @@ export function CategoryCard({
         "w-[93px] cursor-pointer transition-all duration-200 ease-out",
         "hover:bg-[#f9f9f9] hover:scale-[1.02]",
         "active:scale-[0.98] boop",
-        loading && "opacity-50 cursor-not-allowed",
         className
       )}
       onClick={handleClick}
@@ -75,11 +73,6 @@ export function CategoryCard({
             </div>
           )}
           
-          {loading && (
-            <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-[#00539F] border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
         </div>
       </div>
 
@@ -119,6 +112,23 @@ export function CategoryGrid({
 }: CategoryGridProps) {
   const gridCols = columns === 3 ? "grid-cols-3" : "grid-cols-4"
 
+  // Show skeleton when loading (both initial load and reloading)
+  if (loading) {
+    return (
+      <div className={cn(
+        "w-full h-full overflow-y-auto scrollbar-hide p-0",
+        className
+      )}>
+        <div className={cn(
+          "grid gap-1 content-start",
+          gridCols
+        )}>
+          <CategorySkeletonGrid count={12} columns={columns} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={cn(
       "w-full h-full overflow-y-auto scrollbar-hide p-0",
@@ -135,7 +145,6 @@ export function CategoryGrid({
             name={category.name}
             imageUrl={category.imageUrl}
             onClick={onCategoryClick}
-            loading={loading}
           />
         ))}
       </div>

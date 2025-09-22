@@ -12,6 +12,9 @@ interface ProductGridProps {
   columns?: number
   className?: string
   emptyMessage?: string
+  hasMoreResults?: boolean
+  loadingMore?: boolean
+  onLoadMore?: () => void
 }
 
 export function ProductGrid({
@@ -21,8 +24,38 @@ export function ProductGrid({
   onProductSelect,
   columns = 4,
   className,
-  emptyMessage = "No products found"
+  emptyMessage = "No products found",
+  hasMoreResults = false,
+  loadingMore = false,
+  onLoadMore
 }: ProductGridProps) {
+  // Ref for scroll detection
+  const gridRef = React.useRef<HTMLDivElement>(null)
+
+  // Infinite scroll effect
+  React.useEffect(() => {
+    if (!onLoadMore || !hasMoreResults || loadingMore) return
+
+    const handleScroll = () => {
+      if (!gridRef.current) return
+      
+      const container = gridRef.current.parentElement // The scrollable container
+      if (!container) return
+
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const threshold = 200 // Load more when 200px from bottom
+      
+      if (scrollTop + clientHeight >= scrollHeight - threshold) {
+        onLoadMore()
+      }
+    }
+
+    const container = gridRef.current?.parentElement
+    if (container) {
+      container.addEventListener('scroll', handleScroll)
+      return () => container.removeEventListener('scroll', handleScroll)
+    }
+  }, [onLoadMore, hasMoreResults, loadingMore])
   
   if (loading) {
     return (
@@ -63,7 +96,7 @@ export function ProductGrid({
   }
 
   return (
-    <div className={cn("", className)}>
+    <div ref={gridRef} className={cn("", className)}>
       <div 
         className={cn(
           "grid gap-0 w-full",
@@ -79,25 +112,34 @@ export function ProductGrid({
             return null
           }
           
+          
           return (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              title={product.title}
-              brandName={product.brandName}
-              shortDescription={product.shortDescription}
-              defaultImageUrl={product.defaultImageUrl}
-              price={product.price}
-              promotions={product.promotions || []}
-              isNew={product.isNew}
-              averageRating={product.reviews?.stats?.overallRating}
-              reviewCount={product.reviews?.stats?.noOfReviews}
-              isSelected={selectedProducts.includes(product.id)}
-              onSelect={onProductSelect}
-            />
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  title={product.title}
+                  brandName={product.brandName}
+                  shortDescription={product.shortDescription}
+                  defaultImageUrl={product.defaultImageUrl}
+                  media={product.media}
+                  price={product.price}
+                  promotions={product.promotions || []}
+                  isNew={product.isNew}
+                  averageRating={product.reviews?.stats?.overallRating}
+                  reviewCount={product.reviews?.stats?.noOfReviews}
+                  isSelected={selectedProducts.includes(product.id)}
+                  onSelect={onProductSelect}
+                />
           )
         }).filter(Boolean)}
       </div>
+      
+      {/* Loading more skeleton */}
+      {loadingMore && (
+        <div className="mt-4">
+          <ProductSkeletonGrid count={6} columns={columns} />
+        </div>
+      )}
     </div>
   )
 }
