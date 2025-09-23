@@ -193,7 +193,7 @@ export function ProductCard({
       </div>
 
       {/* Bottom container */}
-      <div className="flex flex-col gap-2 items-start justify-center relative w-full">
+      <div className="flex flex-col gap-2 items-start overflow-hidden justify-center relative w-full">
         {/* Clubcard Value Bar */}
         {clubcardPromotion && (
           <div className="relative flex items-center justify-start rounded w-full shadow-[0px_1px_1px_0px_rgba(0,0,0,0.15),0px_2px_2px_0px_rgba(0,0,0,0.1)]">
