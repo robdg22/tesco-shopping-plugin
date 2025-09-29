@@ -1,12 +1,13 @@
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches';
   payload?: {
     query?: string;
     categoryId?: string;
     count?: number;
     offset?: number;
     suggestionsCount?: number;
+    searches?: string[];
   };
 }
 
@@ -33,6 +34,12 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'searchWithSuggestions':
         await handleSearchWithSuggestions(msg.payload);
+        break;
+      case 'loadRecentSearches':
+        await handleLoadRecentSearches();
+        break;
+      case 'saveRecentSearches':
+        await handleSaveRecentSearches(msg.payload);
         break;
       default:
         figma.ui.postMessage({ type: 'error', error: 'Unknown message type' });
@@ -489,5 +496,34 @@ async function handleSearchWithSuggestions(payload?: { query?: string; suggestio
       type: 'error',
       error: `Failed to search with suggestions: ${error instanceof Error ? error.message : 'Unknown error'}`,
     });
+  }
+}
+
+// Handle loading recent searches from clientStorage
+async function handleLoadRecentSearches() {
+  try {
+    const recentSearches = await figma.clientStorage.getAsync('tesco-recent-searches');
+    figma.ui.postMessage({
+      type: 'recentSearchesLoaded',
+      data: recentSearches || []
+    });
+  } catch (error) {
+    console.error('Failed to load recent searches:', error);
+    figma.ui.postMessage({
+      type: 'recentSearchesLoaded',
+      data: []
+    });
+  }
+}
+
+// Handle saving recent searches to clientStorage
+async function handleSaveRecentSearches(payload?: { searches?: string[] }) {
+  try {
+    if (payload?.searches) {
+      await figma.clientStorage.setAsync('tesco-recent-searches', payload.searches);
+      console.log('Recent searches saved:', payload.searches);
+    }
+  } catch (error) {
+    console.error('Failed to save recent searches:', error);
   }
 }

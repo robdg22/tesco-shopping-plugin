@@ -10,6 +10,228 @@
     -webkit-line-clamp: 2;
   }
   
+  .gradient-blur {
+    position: absolute;
+    z-index: 5;
+    inset: auto 0 0 0;
+    height: 5%;
+    pointer-events: none;
+    border-radius: 0 0 0.75rem 0.75rem;
+    overflow: hidden;
+    background: linear-gradient(
+      to top,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 1) 15%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+  .gradient-blur-top {
+    position: absolute;
+    z-index: 5;
+    inset: 0 0 auto 0;
+    height: 5%;
+    pointer-events: none;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 1) 15%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+  .gradient-blur > div,
+  .gradient-blur::before,
+  .gradient-blur::after {
+    position: absolute;
+    inset: 0;
+    border-radius: 0 0 0.75rem 0.75rem;
+    overflow: hidden;
+  }
+  .gradient-blur::before {
+    content: "";
+    z-index: 1;
+    backdrop-filter: blur(0.5px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 1) 12.5%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 0) 37.5%
+    );
+  }
+  .gradient-blur > div:nth-of-type(1) {
+    z-index: 2;
+    backdrop-filter: blur(1px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 12.5%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 1) 37.5%,
+      rgba(0, 0, 0, 0) 50%
+    );
+  }
+  .gradient-blur > div:nth-of-type(2) {
+    z-index: 3;
+    backdrop-filter: blur(2px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 25%,
+      rgba(0, 0, 0, 1) 37.5%,
+      rgba(0, 0, 0, 1) 50%,
+      rgba(0, 0, 0, 0) 62.5%
+    );
+  }
+  .gradient-blur > div:nth-of-type(3) {
+    z-index: 4;
+    backdrop-filter: blur(4px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 37.5%,
+      rgba(0, 0, 0, 1) 50%,
+      rgba(0, 0, 0, 1) 62.5%,
+      rgba(0, 0, 0, 0) 75%
+    );
+  }
+  .gradient-blur > div:nth-of-type(4) {
+    z-index: 5;
+    backdrop-filter: blur(8px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 1) 62.5%,
+      rgba(0, 0, 0, 1) 75%,
+      rgba(0, 0, 0, 0) 87.5%
+    );
+  }
+  .gradient-blur > div:nth-of-type(5) {
+    z-index: 6;
+    backdrop-filter: blur(16px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 62.5%,
+      rgba(0, 0, 0, 1) 75%,
+      rgba(0, 0, 0, 1) 87.5%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+  .gradient-blur > div:nth-of-type(6) {
+    z-index: 7;
+    backdrop-filter: blur(32px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 75%,
+      rgba(0, 0, 0, 1) 87.5%,
+      rgba(0, 0, 0, 1) 100%
+    );
+  }
+  .gradient-blur::after {
+    content: "";
+    z-index: 8;
+    backdrop-filter: blur(64px);
+    mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 87.5%,
+      rgba(0, 0, 0, 1) 100%
+    );
+  }
+  
+  .gradient-blur-top > div,
+  .gradient-blur-top::before,
+  .gradient-blur-top::after {
+    position: absolute;
+    inset: 0;
+    border-radius: 0.75rem 0.75rem 0 0;
+    overflow: hidden;
+  }
+  .gradient-blur-top::before {
+    content: "";
+    z-index: 1;
+    backdrop-filter: blur(0.5px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 1) 12.5%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 0) 37.5%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(1) {
+    z-index: 2;
+    backdrop-filter: blur(1px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 12.5%,
+      rgba(0, 0, 0, 1) 25%,
+      rgba(0, 0, 0, 1) 37.5%,
+      rgba(0, 0, 0, 0) 50%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(2) {
+    z-index: 3;
+    backdrop-filter: blur(2px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 25%,
+      rgba(0, 0, 0, 1) 37.5%,
+      rgba(0, 0, 0, 1) 50%,
+      rgba(0, 0, 0, 0) 62.5%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(3) {
+    z-index: 4;
+    backdrop-filter: blur(4px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 37.5%,
+      rgba(0, 0, 0, 1) 50%,
+      rgba(0, 0, 0, 1) 62.5%,
+      rgba(0, 0, 0, 0) 75%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(4) {
+    z-index: 5;
+    backdrop-filter: blur(8px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, 1) 62.5%,
+      rgba(0, 0, 0, 1) 75%,
+      rgba(0, 0, 0, 0) 87.5%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(5) {
+    z-index: 6;
+    backdrop-filter: blur(16px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 62.5%,
+      rgba(0, 0, 0, 1) 75%,
+      rgba(0, 0, 0, 1) 87.5%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+  .gradient-blur-top > div:nth-of-type(6) {
+    z-index: 7;
+    backdrop-filter: blur(32px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 75%,
+      rgba(0, 0, 0, 1) 87.5%,
+      rgba(0, 0, 0, 1) 100%
+    );
+  }
+  .gradient-blur-top::after {
+    content: "";
+    z-index: 8;
+    backdrop-filter: blur(64px);
+    mask: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0) 87.5%,
+      rgba(0, 0, 0, 1) 100%
+    );
+  }
+  
 .scrollbar-hide {
   /* Hide scrollbar for IE, Edge and Firefox */
   -ms-overflow-style: none;  /* IE and Edge */
@@ -34,6 +256,140 @@
   }
   75% {
     background-position: 0% 100%, 100% 0%, 0% 0%, 100% 100%, 55% 45%;
+  }
+}
+
+/* Checkmark drawing animation */
+@keyframes drawCheckmark {
+  0% {
+    stroke-dashoffset: 18;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Add animation class for accessibility */
+.animate-draw-checkmark {
+  stroke-dasharray: 18;
+  stroke-dashoffset: 18;
+  animation: drawCheckmark 150ms ease-out forwards;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .animate-draw-checkmark {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Horizontal scroll with gradient masks */
+@property --scroll-fade-left-mid {
+  syntax: "<length>";
+  initial-value: -24px;
+  inherits: false;
+}
+
+@property --scroll-fade-left-stop {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
+}
+
+@property --scroll-fade-right-stop {
+  syntax: "<length-percentage>";
+  initial-value: 100%;
+  inherits: false;
+}
+
+@property --scroll-fade-right-mid {
+  syntax: "<length-percentage>";
+  initial-value: calc(100% + 24px);
+  inherits: false;
+}
+
+.horizontal-scroll-container {
+  position: relative;
+  isolation: isolate;
+  
+  &.has-scroll {
+    .scroll-content {
+      mask-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0%) 0%,
+        rgba(0, 0, 0, 0%) var(--scroll-fade-left-mid),
+        rgba(0, 0, 0, 100%) var(--scroll-fade-left-stop),
+        rgba(0, 0, 0, 100%) var(--scroll-fade-right-stop),
+        rgba(0, 0, 0, 0%) var(--scroll-fade-right-mid),
+        rgba(0, 0, 0, 0%) 100%
+      );
+      transition: var(--scroll-fade-left-stop, --scroll-fade-right-stop, --scroll-fade-left-mid, --scroll-fade-right-mid) 300ms ease-out;
+    }
+    
+    &.fade-left .scroll-content {
+      --scroll-fade-left-mid: 16px;
+      --scroll-fade-left-stop: 32px;
+    }
+    
+    &.fade-right .scroll-content {
+      --scroll-fade-right-mid: calc(100% - 16px);
+      --scroll-fade-right-stop: calc(100% - 32px);
+    }
+  }
+}
+
+.scroll-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 300ms ease-out;
+  transition-property: left, right, opacity;
+  margin-top: -2px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    color: #666;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+  
+  &:hover svg {
+    color: #333;
+    transform: scale(1.1);
+  }
+  
+  &.inactive {
+    pointer-events: none;
+  }
+}
+
+.scroll-button-left {
+  left: -50px;
+}
+
+.scroll-button-right {
+  right: -50px;
+}
+
+.horizontal-scroll-container.hovered {
+  .scroll-button-left.active {
+    left: -14px;
+    opacity: 1;
+  }
+  
+  .scroll-button-right.active {
+    right: -14px;
+    opacity: 1;
   }
 }
 }

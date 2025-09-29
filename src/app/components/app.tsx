@@ -6,6 +6,8 @@ import { CategoryGrid } from '../../components/ui/category-card';
 import { ProductGrid } from '../../components/ui/product-grid';
 import { Breadcrumb } from '../../components/ui/breadcrumb';
 import { MeshGradient } from '../../components/ui/mesh-gradient';
+import { PopulateFooter } from '../../components/ui/populate-footer';
+import { HorizontalScroll } from '../../components/ui/horizontal-scroll';
 import type { TaxonomyItem, ProductItem, CategoryBreadcrumb, CategoryNavigationState } from '../../types/tesco';
 
 interface AppState {
@@ -42,7 +44,7 @@ export class App extends React.Component<{}, AppState> {
       categories: [],
       products: [],
       error: null,
-      recentSearches: ['Cheese', 'Milk', 'Bread', 'Eggs'],
+      recentSearches: this.loadRecentSearches(),
       isSearchOverlayOpen: false,
       searchSuggestions: [
         { text: 'cheese', query: 'cheese' },
@@ -73,6 +75,17 @@ export class App extends React.Component<{}, AppState> {
     };
   }
 
+  // Load recent searches from Figma clientStorage
+  loadRecentSearches = (): string[] => {
+    // Initial empty array - will be loaded from storage after mount
+    return [];
+  }
+
+  // Save recent searches to Figma clientStorage
+  saveRecentSearches = (searches: string[]) => {
+    this.sendMessage('saveRecentSearches', { searches });
+  }
+
   componentDidMount() {
     // Set up message listener for responses from main thread
     window.onmessage = (event) => {
@@ -81,6 +94,12 @@ export class App extends React.Component<{}, AppState> {
     };
 
     this.loadCategories();
+    
+    // Load recent searches from storage
+    this.sendMessage('loadRecentSearches');
+
+    // Expose populateTiles function globally so Figma UI button can call it
+    (window as any).populateTiles = this.populateTiles;
 
     // Auto-focus the search bar
     const focusSearchInput = () => {
@@ -200,6 +219,32 @@ export class App extends React.Component<{}, AppState> {
         }
         break;
         
+      case 'tilesDetected':
+        console.log(`✅ Detected ${msg.data.total} tiles:`, msg.data.tiles);
+        // You could store detected tiles in state if needed
+        break;
+        
+      case 'populateProductTilesResponse':
+        console.log('✅ Tile population completed:', msg.data.summary);
+        const { successful, failed, total } = msg.data.summary;
+        if (successful > 0) {
+          this.setState({ 
+            error: null,
+            // You could show a success message here
+          });
+          console.log(`🎉 Successfully populated ${successful}/${total} tiles`);
+        }
+        if (failed > 0) {
+          console.warn(`⚠️ Failed to populate ${failed}/${total} tiles`);
+        }
+        break;
+        
+      case 'recentSearchesLoaded':
+        if (msg.data && Array.isArray(msg.data)) {
+          this.setState({ recentSearches: msg.data });
+        }
+        break;
+        
       case 'error':
         this.setState({ error: msg.error, loading: false });
         break;
@@ -224,9 +269,9 @@ export class App extends React.Component<{}, AppState> {
     
     // Add to recent searches if it's a new search
     if (searchTerm && !this.state.recentSearches.includes(searchTerm)) {
-      this.setState(prevState => ({
-        recentSearches: [searchTerm, ...prevState.recentSearches.slice(0, 3)]
-      }));
+      const newRecentSearches = [searchTerm, ...this.state.recentSearches.slice(0, 9)]; // Keep last 10
+      this.setState({ recentSearches: newRecentSearches });
+      this.saveRecentSearches(newRecentSearches);
     }
     
     this.setState({ 
@@ -237,7 +282,8 @@ export class App extends React.Component<{}, AppState> {
       viewMode: 'search',
       totalResults: 0,
       hasMoreResults: false,
-      loadingMore: false
+      loadingMore: false,
+      selectedProducts: []  // Reset selection when running new search
     });
     
     this.sendMessage('searchProducts', {
@@ -445,6 +491,25 @@ export class App extends React.Component<{}, AppState> {
     }, 300); // 300ms debounce
   };
 
+  // Populate tiles function triggered by the populate button
+  populateTiles = () => {
+    console.log('🎯 Populate tiles button clicked');
+    
+    // Check if we have products to populate with
+    if (this.state.products.length === 0) {
+      this.setState({ 
+        error: 'No products available. Please search for products first.' 
+      });
+      return;
+    }
+    
+    // Send message to backend to populate selected tiles
+    this.sendMessage('populateSelectedTiles', {
+      products: this.state.products,
+      selectedProducts: this.state.selectedProducts
+    });
+  };
+
   handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     console.log('handleSearchChange called with value:', value);
@@ -544,6 +609,7 @@ export class App extends React.Component<{}, AppState> {
     return searchSuggestions;
   };
 
+
   render() {
     const { searchTerm, loading, categoriesLoading, error, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
     const formattedCategories = this.getFormattedCategories();
@@ -565,6 +631,7 @@ export class App extends React.Component<{}, AppState> {
               className="flex-1"
             />
           </div>
+
           
           {/* Breadcrumb for search results and category navigation */}
           {(viewMode === 'search' || this.state.categoryNavigation.breadcrumbs.length > 1) && (
@@ -577,12 +644,14 @@ export class App extends React.Component<{}, AppState> {
           
           {/* Recent Searches - only show when at home level */}
           {viewMode === 'categories' && recentSearches.length > 0 && this.state.categoryNavigation.breadcrumbs.length === 1 && (
-            <FilterChipList
-              chips={recentSearches}
-              onChipSelect={this.handleRecentSearchSelect}
-              variant="search"
-              className="flex gap-2.5 items-start pb-1"
-            />
+            <HorizontalScroll className="w-full">
+              <FilterChipList
+                chips={recentSearches}
+                onChipSelect={this.handleRecentSearchSelect}
+                variant="search"
+                className="flex gap-2.5 items-start pb-1 flex-nowrap"
+              />
+            </HorizontalScroll>
           )}
         </div>
 
@@ -612,32 +681,36 @@ export class App extends React.Component<{}, AppState> {
                   onCategoryClick={this.browseCategoryProducts}
                   loading={categoriesLoading}
                   columns={4}
+                  className="px-1 py-5"
                 />
               </div>
               
-              {/* Top Fade - Progressive with Clipping */}
+              {/* Top Gradient Blur - When scrolled down */}
               {this.state.scrollState.scrollTop > 0 && (
-                <div 
-                  className="absolute top-0 left-0 right-0 pointer-events-none z-10 rounded-t-xl overflow-hidden"
-                  style={{
-                    height: '12px',
-                    background: `linear-gradient(to bottom, 
-                      rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
-                      rgba(255, 255, 255, 0) 100%)`
-                  }}
-                />
+                <div className="gradient-blur-top">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
               )}
               
-              {/* Bottom Fade - Always when can scroll with Clipping */}
-              {this.state.scrollState.canScrollDown && (
-                <div 
-                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10 rounded-b-xl overflow-hidden"
-                  style={{
-                    height: '12px',
-                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)'
-                  }}
-                />
-              )}
+              {/* Bottom Gradient Blur - Always shown, fades out near bottom */}
+              <div 
+                className="gradient-blur"
+                style={{
+                  opacity: this.state.scrollState.canScrollDown ? 1 : Math.max(0, 1 - (this.state.scrollState.scrollTop / 100))
+                }}
+              >
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
             </>
           ) : (
             <>
@@ -652,7 +725,7 @@ export class App extends React.Component<{}, AppState> {
                   selectedProducts={selectedProducts}
                   onProductSelect={this.handleProductSelect}
                   columns={3}
-                  className="p-3"
+                  className="px-1 py-5"
                   emptyMessage={searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
                   hasMoreResults={this.state.hasMoreResults}
                   loadingMore={this.state.loadingMore}
@@ -660,29 +733,32 @@ export class App extends React.Component<{}, AppState> {
                 />
               </div>
               
-              {/* Top Fade - Progressive with Clipping */}
+              {/* Top Gradient Blur - When scrolled down */}
               {this.state.scrollState.scrollTop > 0 && (
-                <div 
-                  className="absolute top-0 left-0 right-0 pointer-events-none z-10 rounded-t-xl overflow-hidden"
-                  style={{
-                    height: '12px',
-                    background: `linear-gradient(to bottom, 
-                      rgba(255, 255, 255, ${Math.min(this.state.scrollState.scrollTop / 20, 1)}) 0%, 
-                      rgba(255, 255, 255, 0) 100%)`
-                  }}
-                />
+                <div className="gradient-blur-top">
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                  <div></div>
+                </div>
               )}
               
-              {/* Bottom Fade - Always when can scroll with Clipping */}
-              {this.state.scrollState.canScrollDown && (
-                <div 
-                  className="absolute bottom-0 left-0 right-0 pointer-events-none z-10 rounded-b-xl overflow-hidden"
-                  style={{
-                    height: '12px',
-                    background: 'linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%)'
-                  }}
-                />
-              )}
+              {/* Bottom Gradient Blur - Always shown, fades out near bottom */}
+              <div 
+                className="gradient-blur"
+                style={{
+                  opacity: this.state.scrollState.canScrollDown ? 1 : Math.max(0, 1 - (this.state.scrollState.scrollTop / 100))
+                }}
+              >
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+              </div>
             </>
           )}
           
@@ -692,6 +768,16 @@ export class App extends React.Component<{}, AppState> {
             style={{ boxShadow: '0px -1px 2px 0px inset rgba(0,0,0,0.1)' }}
           />
         </div>
+
+        {/* Populate Footer - Outside main container, only when products are shown */}
+        {viewMode === 'search' && products.length > 0 && !loading && (
+          <div className="w-full max-w-[376px]">
+            <PopulateFooter 
+              onPopulate={this.populateTiles}
+              productCount={selectedProducts.length > 0 ? selectedProducts.length : products.length}
+            />
+          </div>
+        )}
 
         {/* No footer spacer needed with p-3 on container */}
         

@@ -59,7 +59,7 @@ export function ProductGrid({
   
   if (loading) {
     return (
-      <div className={cn("p-3", className)}>
+      <div className={cn("px-3", className)}>
         <ProductSkeletonGrid count={8} columns={columns} />
       </div>
     )
@@ -96,7 +96,7 @@ export function ProductGrid({
   }
 
   return (
-    <div ref={gridRef} className={cn("", className)}>
+    <div ref={gridRef} className={cn("px-3", className)}>
       <div 
         className={cn(
           "grid gap-0 w-full",
@@ -112,6 +112,10 @@ export function ProductGrid({
             return null
           }
           
+          // Determine if this product should be dimmed
+          const hasAnySelection = selectedProducts.length > 0;
+          const isThisProductSelected = selectedProducts.includes(product.id);
+          const shouldDim = hasAnySelection && !isThisProductSelected;
           
           return (
                 <ProductCard
@@ -129,6 +133,7 @@ export function ProductGrid({
                   reviewCount={product.reviews?.stats?.noOfReviews}
                   isSelected={selectedProducts.includes(product.id)}
                   onSelect={onProductSelect}
+                  dimmed={shouldDim}
                 />
           )
         }).filter(Boolean)}

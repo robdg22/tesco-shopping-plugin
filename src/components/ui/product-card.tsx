@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useEffect, useState } from "react"
 import { cn } from "../../lib/utils"
 
 interface ProductCardProps {
@@ -33,6 +34,7 @@ interface ProductCardProps {
   isSelected?: boolean
   onSelect?: (productId: string) => void
   className?: string
+  dimmed?: boolean  // New prop for opacity control
 }
 
 export function ProductCard({
@@ -48,8 +50,17 @@ export function ProductCard({
   reviewCount,
   isSelected = false,
   onSelect,
-  className
+  className,
+  dimmed = false
 }: ProductCardProps) {
+  const [animationKey, setAnimationKey] = useState(0)
+  
+  // Trigger animation when selection state changes
+  useEffect(() => {
+    if (isSelected) {
+      setAnimationKey(prev => prev + 1)
+    }
+  }, [isSelected])
   // Get the best available image with aspect ratio
   const getImageData = () => {
     // Try media.defaultImage first (primary image with aspect ratio)
@@ -135,7 +146,9 @@ export function ProductCard({
   return (
     <div 
       className={cn(
-        "bg-white box-border flex flex-col gap-2 items-start justify-start p-2 relative w-full cursor-pointer",
+        "bg-white box-border flex flex-col gap-2 items-start justify-start p-2 relative w-full cursor-pointer transition-all duration-200",
+        dimmed && "opacity-30 hover:opacity-100 hover:scale-105",
+        !dimmed && "hover:scale-105",
         className
       )}
       onClick={handleCardClick}
@@ -233,21 +246,23 @@ export function ProductCard({
       </div>
 
       {/* Selection Checkbox */}
-      <button 
-        className={cn(
-          "absolute left-1.5 top-1.5 w-4 h-4 cursor-pointer flex items-center justify-center",
-          isSelected 
-            ? "border-none" 
-            : "bg-white border border-[#d1d1d1] rounded shadow-[0px_1px_1px_0px_rgba(0,0,0,0.15),0px_2px_2px_0px_rgba(0,0,0,0.1)]"
-        )}
-        style={isSelected ? {
-          borderRadius: '3px',
-          background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.00) 100%), #007EB3',
-          boxShadow: '0 0 0.3px 1px rgba(0, 108, 153, 0.60) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.14) inset, 0 1px 2px 0.5px rgba(0, 126, 179, 0.20)'
-        } : {}}
-        onClick={handleCheckboxClick}
-        aria-label={isSelected ? "Deselect product" : "Select product"}
-      >
+      {/* Checkbox wrapper with full opacity */}
+      <div className="absolute left-1.5 top-1.5 opacity-100">
+        <button 
+          className={cn(
+            "w-4 h-4 cursor-pointer flex items-center justify-center",
+            isSelected 
+              ? "border-none" 
+              : "bg-white border border-[#d1d1d1] rounded shadow-[0px_1px_1px_0px_rgba(0,0,0,0.15),0px_2px_2px_0px_rgba(0,0,0,0.1)]"
+          )}
+          style={isSelected ? {
+            borderRadius: '3px',
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.00) 100%), #007EB3',
+            boxShadow: '0 0 0.3px 1px rgba(0, 108, 153, 0.60) inset, 0 2px 1px 0 rgba(255, 255, 255, 0.14) inset, 0 1px 2px 0.5px rgba(0, 126, 179, 0.20)'
+          } : {}}
+          onClick={handleCheckboxClick}
+          aria-label={isSelected ? "Deselect product" : "Select product"}
+        >
         {isSelected && (
           <svg 
             className="w-4 h-4" 
@@ -255,23 +270,20 @@ export function ProductCard({
             fill="none" 
             xmlns="http://www.w3.org/2000/svg"
           >
-            <g filter="url(#filter0_i_182_48279)">
-              <path d="M5.66666 13.0404L14.6869 4.02022L13.9798 3.31311L5.66666 11.6262L2.02022 7.97978L1.31311 8.68688L5.66666 13.0404Z" fill="white"/>
-            </g>
-            <defs>
-              <filter id="filter0_i_182_48279" x="0" y="0" width="16" height="16" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-                <feFlood floodOpacity="0" result="BackgroundImageFix"/>
-                <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-                <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-                <feOffset dy="0.375"/>
-                <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/>
-                <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>
-                <feBlend mode="normal" in2="shape" result="effect1_innerShadow_182_48279"/>
-              </filter>
-            </defs>
+            <path 
+              key={animationKey}
+              d="M1.75 8.42676L5.75 12.4268L14.25 3.92676" 
+              fill="none"
+              stroke="white"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="animate-draw-checkmark"
+            />
           </svg>
         )}
-      </button>
+        </button>
+      </div>
     </div>
   )
 }

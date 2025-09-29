@@ -116,7 +116,7 @@ export function CategoryGrid({
   if (loading) {
     return (
       <div className={cn(
-        "w-full p-3",
+        "w-full px-3",
         className
       )}>
         <div className={cn(
@@ -131,7 +131,7 @@ export function CategoryGrid({
 
   return (
     <div className={cn(
-      "w-full p-3",
+      "w-full px-3",
       className
     )}>
       <div className={cn(

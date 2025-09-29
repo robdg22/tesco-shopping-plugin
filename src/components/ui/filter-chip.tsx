@@ -1,6 +1,5 @@
 import * as React from "react"
 import { X } from "lucide-react"
-import { SearchIcon } from "./search-icon"
 import { cn } from "../../lib/utils"
 
 interface FilterChipProps {
@@ -37,7 +36,7 @@ export function FilterChip({
     <div 
       className={cn(
         "relative inline-flex items-center gap-1 px-3 py-1 rounded-2xl cursor-pointer",
-        "bg-[#f6f6f6] border border-[rgba(0,0,0,0.08)]",
+        "border border-[rgba(0,0,0,0.08)]",
         "transition-all duration-200 ease-out",
         "hover:bg-[#f0f0f0] hover:scale-[1.02]",
         "active:scale-[0.98]",
@@ -53,10 +52,6 @@ export function FilterChip({
           {label}
         </span>
       </div>
-      
-      {variant === "search" && (
-        <SearchIcon size={20} className="text-[#666666] opacity-60" />
-      )}
       
       {variant === "filter" && onRemove && (
         <button
@@ -90,7 +85,7 @@ export function FilterChipList({
 }: FilterChipListProps) {
   return (
     <div className={cn(
-      "flex gap-2.5 items-start flex-wrap",
+      "flex gap-2.5 items-start flex-nowrap",
       className
     )}>
       {chips.map((chip, index) => (
@@ -100,6 +95,7 @@ export function FilterChipList({
           onSelect={onChipSelect}
           onRemove={onChipRemove}
           variant={variant}
+          className="flex-shrink-0 whitespace-nowrap"
         />
       ))}
     </div>
