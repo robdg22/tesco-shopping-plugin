@@ -147,17 +147,28 @@ export function SearchOverlay({
     const query = searchTerm.toLowerCase()
     const text = suggestion.text.toLowerCase()
     
-    if (!query || !text.startsWith(query)) {
-      return <span>{suggestion.text}</span>
+    if (!query) {
+      return <span className="font-tesco-bold">{suggestion.text}</span>
     }
     
-    const matchedPart = suggestion.text.slice(0, query.length)
-    const remainingPart = suggestion.text.slice(query.length)
+    // Find the matching part anywhere in the text
+    const matchIndex = text.indexOf(query)
+    
+    if (matchIndex === -1) {
+      // No match found, bold everything
+      return <span className="font-tesco-bold">{suggestion.text}</span>
+    }
+    
+    // Split into: before match, match, after match
+    const beforeMatch = suggestion.text.slice(0, matchIndex)
+    const matchedPart = suggestion.text.slice(matchIndex, matchIndex + query.length)
+    const afterMatch = suggestion.text.slice(matchIndex + query.length)
     
     return (
       <span>
+        {beforeMatch && <span className="font-tesco-bold">{beforeMatch}</span>}
         <span className="font-tesco-regular">{matchedPart}</span>
-        <span className="font-tesco-bold">{remainingPart}</span>
+        {afterMatch && <span className="font-tesco-bold">{afterMatch}</span>}
       </span>
     )
   }

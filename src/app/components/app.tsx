@@ -17,6 +17,7 @@ interface AppState {
   categories: TaxonomyItem[];
   products: ProductItem[];
   error: string | null;
+  successMessage: string | null;
   recentSearches: string[];
   isSearchOverlayOpen: boolean;
   searchSuggestions: Array<{ text: string; query: string }>;
@@ -44,6 +45,7 @@ export class App extends React.Component<{}, AppState> {
       categories: [],
       products: [],
       error: null,
+      successMessage: null,
       recentSearches: this.loadRecentSearches(),
       isSearchOverlayOpen: false,
       searchSuggestions: [
@@ -242,6 +244,26 @@ export class App extends React.Component<{}, AppState> {
       case 'recentSearchesLoaded':
         if (msg.data && Array.isArray(msg.data)) {
           this.setState({ recentSearches: msg.data });
+        }
+        break;
+        
+      case 'populateComplete':
+        if (msg.success) {
+          const message = `Successfully populated ${msg.populatedCount}/${msg.totalSelected} tiles`;
+          this.setState({ 
+            error: null,
+            // Show success message briefly
+            successMessage: msg.errors && msg.errors.length > 0 
+              ? `${message}. Some errors occurred: ${msg.errors.join(', ')}`
+              : message
+          });
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.setState({ successMessage: null });
+          }, 3000);
+        } else {
+          this.setState({ error: 'Failed to populate tiles' });
         }
         break;
         
@@ -611,7 +633,7 @@ export class App extends React.Component<{}, AppState> {
 
 
   render() {
-    const { searchTerm, loading, categoriesLoading, error, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
+    const { searchTerm, loading, categoriesLoading, error, successMessage, recentSearches, isSearchOverlayOpen, viewMode, products, selectedProducts } = this.state;
     const formattedCategories = this.getFormattedCategories();
     const filteredSuggestions = this.getFilteredSuggestions();
 
@@ -659,6 +681,13 @@ export class App extends React.Component<{}, AppState> {
         {error && (
           <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm w-full max-w-[376px]">
             {error}
+          </div>
+        )}
+
+        {/* Success Message Display */}
+        {successMessage && (
+          <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md text-green-700 text-sm w-full max-w-[376px]">
+            {successMessage}
           </div>
         )}
 

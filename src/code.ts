@@ -1,6 +1,6 @@
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches' | 'populateSelectedTiles';
   payload?: {
     query?: string;
     categoryId?: string;
@@ -8,6 +8,8 @@ interface TescoAPIMessage {
     offset?: number;
     suggestionsCount?: number;
     searches?: string[];
+    products?: any[];
+    selectedProducts?: string[];
   };
 }
 
@@ -40,6 +42,9 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'saveRecentSearches':
         await handleSaveRecentSearches(msg.payload);
+        break;
+      case 'populateSelectedTiles':
+        await handlePopulateSelectedTiles(msg.payload);
         break;
       default:
         figma.ui.postMessage({ type: 'error', error: 'Unknown message type' });
@@ -525,5 +530,258 @@ async function handleSaveRecentSearches(payload?: { searches?: string[] }) {
     }
   } catch (error) {
     console.error('Failed to save recent searches:', error);
+  }
+}
+
+// Handle populating selected tiles with product data
+async function handlePopulateSelectedTiles(payload?: { products?: any[]; selectedProducts?: string[] }) {
+  console.log('🎯 Starting tile population process');
+  
+  if (!payload?.products || payload.products.length === 0) {
+    figma.ui.postMessage({ 
+      type: 'error', 
+      error: 'No products provided for population' 
+    });
+    return;
+  }
+
+  try {
+    // Get currently selected nodes in Figma
+    const selectedNodes = figma.currentPage.selection;
+    
+    if (selectedNodes.length === 0) {
+      figma.ui.postMessage({ 
+        type: 'error', 
+        error: 'Please select some tiles/components to populate' 
+      });
+      return;
+    }
+
+    // Find all product tiles within the selected nodes (including nested tiles in frames)
+    const allTiles = findAllProductTiles(selectedNodes);
+    
+    if (allTiles.length === 0) {
+      figma.ui.postMessage({ 
+        type: 'error', 
+        error: 'No product tiles found in selection. Please select frames containing product tiles.' 
+      });
+      return;
+    }
+
+    console.log(`Found ${allTiles.length} product tiles in ${selectedNodes.length} selected nodes`);
+    console.log(`Available products: ${payload.products.length}`);
+
+    let populatedCount = 0;
+    const errors: string[] = [];
+
+    // Process each tile
+    for (let i = 0; i < allTiles.length && i < payload.products.length; i++) {
+      const tile = allTiles[i];
+      const product = payload.products[i];
+      
+      try {
+        await populateNodeWithProduct(tile, product);
+        populatedCount++;
+        console.log(`✅ Populated tile ${i + 1} with product: ${product.title}`);
+      } catch (error) {
+        const errorMsg = `Failed to populate tile ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        errors.push(errorMsg);
+        console.error(errorMsg);
+      }
+    }
+
+    // Send success response
+    figma.ui.postMessage({
+      type: 'populateComplete',
+      success: true,
+      populatedCount,
+      totalSelected: allTiles.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+
+    console.log(`🎉 Population complete: ${populatedCount}/${allTiles.length} tiles populated`);
+
+  } catch (error) {
+    figma.ui.postMessage({
+      type: 'error',
+      error: `Failed to populate tiles: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    });
+  }
+}
+
+// Find all product tiles within the given nodes (recursively searches frames)
+function findAllProductTiles(nodes: readonly SceneNode[]): SceneNode[] {
+  const tiles: SceneNode[] = [];
+  
+  function searchNode(node: SceneNode): void {
+    // Check if this node is a product tile
+    if (isProductTile(node)) {
+      tiles.push(node);
+      console.log(`Found product tile: ${node.name} (${node.type})`);
+    }
+    
+    // Recursively search children if this node has children
+    if ('children' in node && node.children) {
+      for (const child of node.children) {
+        searchNode(child);
+      }
+    }
+  }
+  
+  // Search through all selected nodes
+  for (const node of nodes) {
+    searchNode(node);
+  }
+  
+  return tiles;
+}
+
+// Check if a node is a product tile
+function isProductTile(node: SceneNode): boolean {
+  // Check if it's a frame, component, or instance
+  if (node.type === 'FRAME' || node.type === 'COMPONENT' || node.type === 'INSTANCE') {
+    // Check if the name suggests it's a product tile
+    const name = node.name.toLowerCase();
+    return name.includes('product') || 
+           name.includes('tile') || 
+           name.includes('card') ||
+           name.includes('item');
+  }
+  
+  // Also check for groups that might contain product tiles
+  if (node.type === 'GROUP') {
+    const name = node.name.toLowerCase();
+    return name.includes('product') || 
+           name.includes('tile') || 
+           name.includes('card') ||
+           name.includes('item');
+  }
+  
+  return false;
+}
+
+// Populate a single node with product data
+async function populateNodeWithProduct(node: SceneNode, product: any) {
+  console.log(`Populating node: ${node.name} with product: ${product.title}`);
+  
+  // Layer name configuration based on documentation
+  const TILE_LAYER_NAMES = {
+    price: "productPrice",
+    title: "productName", 
+    image: "productImage",
+    thumbnail: "Thumbnail",
+    offerText: "offerText",
+    offerEndDate: "offerEndDate",
+    swatches: "variationSwatches",
+    valueBar: "valueBar",
+    rating: "Rating"
+  };
+
+  // Find and populate text layers
+  if (product.title) {
+    const titleNode = findLayerByName(node, TILE_LAYER_NAMES.title);
+    if (titleNode && titleNode.type === 'TEXT') {
+      await setTextContent(titleNode, product.title);
+    }
+  }
+
+  if (product.price?.price) {
+    const priceNode = findLayerByName(node, TILE_LAYER_NAMES.price);
+    if (priceNode && priceNode.type === 'TEXT') {
+      const priceText = `£${product.price.price.toFixed(2)}`;
+      await setTextContent(priceNode, priceText);
+    }
+  }
+
+  if (product.promotions && product.promotions.length > 0) {
+    const offerNode = findLayerByName(node, TILE_LAYER_NAMES.offerText);
+    if (offerNode && offerNode.type === 'TEXT') {
+      await setTextContent(offerNode, product.promotions[0].offerText || 'Special Offer');
+    }
+  }
+
+  // Handle images
+  if (product.defaultImageUrl || product.media?.defaultImage?.url) {
+    const imageUrl = product.defaultImageUrl || product.media.defaultImage.url;
+    const imageNode = findLayerByName(node, TILE_LAYER_NAMES.image);
+    
+    if (imageNode && (imageNode.type === 'RECTANGLE' || imageNode.type === 'FRAME')) {
+      await setImageFill(imageNode, imageUrl);
+    }
+  }
+
+  // Handle component variants (Thumbnail)
+  const thumbnailNode = findLayerByName(node, TILE_LAYER_NAMES.thumbnail);
+  if (thumbnailNode && thumbnailNode.type === 'INSTANCE') {
+    // Try to set variant properties if available
+    try {
+      if (product.defaultImageUrl || product.media?.defaultImage?.url) {
+        const imageUrl = product.defaultImageUrl || product.media.defaultImage.url;
+        await setImageFill(thumbnailNode, imageUrl);
+      }
+    } catch (error) {
+      console.log('Could not set thumbnail image:', error);
+    }
+  }
+}
+
+// Helper function to find a layer by name recursively
+function findLayerByName(node: SceneNode, layerName: string): SceneNode | null {
+  if (node.name === layerName) {
+    return node;
+  }
+  
+  if ('children' in node) {
+    for (const child of node.children) {
+      const found = findLayerByName(child, layerName);
+      if (found) return found;
+    }
+  }
+  
+  return null;
+}
+
+// Helper function to set text content
+async function setTextContent(textNode: TextNode, content: string) {
+  try {
+    await figma.loadFontAsync(textNode.fontName as FontName);
+    textNode.characters = content;
+    console.log(`Set text: "${content}"`);
+  } catch (error) {
+    console.error('Failed to set text content:', error);
+    throw error;
+  }
+}
+
+// Helper function to set image fill
+async function setImageFill(node: RectangleNode | FrameNode | InstanceNode, imageUrl: string) {
+  try {
+    // Create image fill
+    const imageFill = await figma.createImageAsync(imageUrl);
+    
+    // Apply fill to the node
+    if (node.type === 'RECTANGLE' || node.type === 'FRAME') {
+      node.fills = [{
+        type: 'IMAGE',
+        imageHash: imageFill.hash,
+        scaleMode: 'FILL'
+      }];
+    } else if (node.type === 'INSTANCE') {
+      // For instances, try to find a rectangle child to fill
+      const rectChild = findLayerByName(node, 'Image placeholder') || 
+                       findLayerByName(node, 'productImage');
+      if (rectChild && (rectChild.type === 'RECTANGLE' || rectChild.type === 'FRAME')) {
+        rectChild.fills = [{
+          type: 'IMAGE',
+          imageHash: imageFill.hash,
+          scaleMode: 'FILL'
+        }];
+      }
+    }
+    
+    console.log(`Set image: ${imageUrl}`);
+  } catch (error) {
+    console.error('Failed to set image fill:', error);
+    throw error;
   }
 }

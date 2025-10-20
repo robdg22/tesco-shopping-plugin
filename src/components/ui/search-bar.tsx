@@ -33,7 +33,7 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
           }}
         >
           <div className="flex items-center h-full pl-3 pr-3">
-            <div className="flex items-center gap-2 flex-1">
+            <div className="flex items-center gap-2 flex-1" style={{ transform: 'translateY(-1px)' }}>
               <SearchIcon 
                 size={16}
                 className={cn(
