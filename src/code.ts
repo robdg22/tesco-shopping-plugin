@@ -1,6 +1,9 @@
+// Import component configuration
+import { COMPONENT_MAPPINGS, AUTOLAYOUT_CONFIG } from './config/component-config';
+
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches' | 'populateSelectedTiles';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches' | 'populateSelectedTiles' | 'saveComponentMapping' | 'getSelectedComponentId' | 'loadComponentMappings';
   payload?: {
     query?: string;
     categoryId?: string;
@@ -9,7 +12,10 @@ interface TescoAPIMessage {
     suggestionsCount?: number;
     searches?: string[];
     products?: any[];
-    selectedProducts?: string[];
+    selectedProducts?: any[];
+    platform?: string;
+    layout?: string;
+    componentId?: string;
   };
 }
 
@@ -45,6 +51,15 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'populateSelectedTiles':
         await handlePopulateSelectedTiles(msg.payload);
+        break;
+      case 'saveComponentMapping':
+        await handleSaveComponentMapping(msg.payload);
+        break;
+      case 'getSelectedComponentId':
+        await handleGetSelectedComponentId();
+        break;
+      case 'loadComponentMappings':
+        await handleLoadComponentMappings();
         break;
       default:
         figma.ui.postMessage({ type: 'error', error: 'Unknown message type' });
@@ -534,78 +549,343 @@ async function handleSaveRecentSearches(payload?: { searches?: string[] }) {
 }
 
 // Handle populating selected tiles with product data
-async function handlePopulateSelectedTiles(payload?: { products?: any[]; selectedProducts?: string[] }) {
-  console.log('🎯 Starting tile population process');
+async function handlePopulateSelectedTiles(payload?: { 
+  products?: any[]; 
+  selectedProducts?: any[];
+  platform?: string; 
+  layout?: string; 
+}) {
+  console.log('Starting population with config:', { 
+    platform: payload?.platform, 
+    layout: payload?.layout 
+  });
   
   if (!payload?.products || payload.products.length === 0) {
-    figma.ui.postMessage({ 
-      type: 'error', 
-      error: 'No products provided for population' 
-    });
+    figma.ui.postMessage({ type: 'error', error: 'No products provided' });
     return;
   }
 
   try {
-    // Get currently selected nodes in Figma
     const selectedNodes = figma.currentPage.selection;
     
-    if (selectedNodes.length === 0) {
-      figma.ui.postMessage({ 
-        type: 'error', 
-        error: 'Please select some tiles/components to populate' 
-      });
-      return;
-    }
-
-    // Find all product tiles within the selected nodes (including nested tiles in frames)
-    const allTiles = findAllProductTiles(selectedNodes);
+    // Check if selection contains existing tiles
+    const existingTiles = findAllProductTiles(selectedNodes);
     
-    if (allTiles.length === 0) {
-      figma.ui.postMessage({ 
-        type: 'error', 
-        error: 'No product tiles found in selection. Please select frames containing product tiles.' 
-      });
-      return;
+    if (existingTiles.length > 0) {
+      // Mode A: Fill existing tiles (ignore platform/layout settings)
+      await populateExistingTiles(existingTiles, payload.products);
+    } else if (selectedNodes.length === 1 && selectedNodes[0].type === 'FRAME') {
+      // Mode B: Selected empty frame - create instances inside
+      await createInstancesInFrame(
+        selectedNodes[0] as FrameNode, 
+        payload.products,
+        payload.platform || 'app',
+        payload.layout || 'grid',
+        payload.selectedProducts?.length || payload.products.length
+      );
+    } else {
+      // Mode C: No selection or invalid selection - create new frame
+      await createNewFrameWithInstances(
+        payload.products,
+        payload.platform || 'app',
+        payload.layout || 'grid',
+        payload.selectedProducts?.length || payload.products.length
+      );
     }
-
-    console.log(`Found ${allTiles.length} product tiles in ${selectedNodes.length} selected nodes`);
-    console.log(`Available products: ${payload.products.length}`);
-
-    let populatedCount = 0;
-    const errors: string[] = [];
-
-    // Process each tile
-    for (let i = 0; i < allTiles.length && i < payload.products.length; i++) {
-      const tile = allTiles[i];
-      const product = payload.products[i];
-      
-      try {
-        await populateNodeWithProduct(tile, product);
-        populatedCount++;
-        console.log(`✅ Populated tile ${i + 1} with product: ${product.title}`);
-      } catch (error) {
-        const errorMsg = `Failed to populate tile ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        errors.push(errorMsg);
-        console.error(errorMsg);
-      }
-    }
-
-    // Send success response
-    figma.ui.postMessage({
-      type: 'populateComplete',
-      success: true,
-      populatedCount,
-      totalSelected: allTiles.length,
-      errors: errors.length > 0 ? errors : undefined
-    });
-
-    console.log(`🎉 Population complete: ${populatedCount}/${allTiles.length} tiles populated`);
-
   } catch (error) {
     figma.ui.postMessage({
       type: 'error',
-      error: `Failed to populate tiles: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      error: error instanceof Error ? error.message : 'Population failed'
     });
+  }
+}
+
+// Populate existing tiles (keep current implementation)
+async function populateExistingTiles(tiles: SceneNode[], products: any[]) {
+  let populatedCount = 0;
+  const errors: string[] = [];
+  
+  // Preload fonts from all tiles
+  const fontsToLoad = new Set<string>();
+  for (const tile of tiles) {
+    collectFontsFromNode(tile, fontsToLoad);
+  }
+  
+  // Load all fonts
+  const fontPromises = Array.from(fontsToLoad).map(fontString => {
+    const [family, style] = fontString.split(':');
+    return figma.loadFontAsync({ family, style });
+  });
+  
+  try {
+    await Promise.all(fontPromises);
+    console.log(`Preloaded ${fontsToLoad.size} fonts for existing tiles`);
+  } catch (error) {
+    console.warn('Some fonts failed to load:', error);
+  }
+  
+  for (let i = 0; i < tiles.length && i < products.length; i++) {
+    try {
+      await populateNodeWithProduct(tiles[i], products[i]);
+      populatedCount++;
+    } catch (error) {
+      errors.push(`Tile ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  figma.ui.postMessage({
+    type: 'populateComplete',
+    success: true,
+    populatedCount,
+    totalSelected: tiles.length,
+    errors: errors.length > 0 ? errors : undefined
+  });
+}
+
+// Create instances in existing frame
+async function createInstancesInFrame(
+  frame: FrameNode, 
+  products: any[],
+  platform: string,
+  layout: string,
+  instanceCount: number
+) {
+  const configKey = `${platform}-${layout}`;
+  const config = COMPONENT_MAPPINGS[configKey];
+  
+  if (!config || !config.componentId) {
+    throw new Error(`No component configured for ${platform} ${layout}`);
+  }
+  
+  // Find component by ID or library key
+  let component: ComponentNode;
+  
+  // Check if this looks like a component key (long hex string) or if we have library info
+  const isComponentKey = config.componentId.length > 20 && /^[a-f0-9]+$/i.test(config.componentId);
+  const hasLibraryInfo = config.libraryId && config.libraryId.length > 0;
+  
+  if (hasLibraryInfo || isComponentKey) {
+    // Component is from a library - use importComponentByKeyAsync
+    try {
+      component = await figma.importComponentByKeyAsync(config.componentId);
+    } catch (error) {
+      throw new Error(`Failed to import library component: ${config.componentId}. Make sure the library is published and accessible.`);
+    }
+  } else {
+    // Component is local - use getNodeByIdAsync
+    const node = await figma.getNodeByIdAsync(config.componentId);
+    if (!node || node.type !== 'COMPONENT') {
+      throw new Error(`Local component not found: ${config.componentId}`);
+    }
+    component = node;
+  }
+  
+  // Preload fonts from the component
+  await preloadFontsFromComponent(component);
+  
+  // Set autolayout on frame
+  const layoutConfig = AUTOLAYOUT_CONFIG[layout as keyof typeof AUTOLAYOUT_CONFIG];
+  frame.layoutMode = layoutConfig.layoutMode as any;
+  frame.layoutWrap = layoutConfig.layoutWrap as any;
+  frame.primaryAxisSizingMode = 'AUTO';
+  frame.counterAxisSizingMode = 'AUTO';
+  frame.itemSpacing = 16;
+  frame.paddingLeft = 16;
+  frame.paddingRight = 16;
+  frame.paddingTop = 16;
+  frame.paddingBottom = 16;
+  
+  // Create instances (limit to instanceCount)
+  const productsToUse = products.slice(0, instanceCount);
+  let createdCount = 0;
+  for (const product of productsToUse) {
+    const instance = component.createInstance();
+    frame.appendChild(instance);
+    await populateNodeWithProduct(instance, product);
+    createdCount++;
+  }
+  
+  figma.ui.postMessage({
+    type: 'populateComplete',
+    success: true,
+    populatedCount: createdCount,
+    totalSelected: createdCount,
+  });
+}
+
+// Create new frame with instances
+async function createNewFrameWithInstances(
+  products: any[],
+  platform: string,
+  layout: string,
+  instanceCount: number
+) {
+  // Create new frame on canvas
+  const frame = figma.createFrame();
+  frame.name = `${platform} - ${layout} - Product Grid`;
+  frame.x = figma.viewport.center.x - 200;
+  frame.y = figma.viewport.center.y - 200;
+  
+  figma.currentPage.appendChild(frame);
+  figma.currentPage.selection = [frame];
+  
+  // Use createInstancesInFrame logic
+  await createInstancesInFrame(frame, products, platform, layout, instanceCount);
+}
+
+// Helper function to collect fonts from a node
+function collectFontsFromNode(node: SceneNode, fontsToLoad: Set<string>) {
+  if (node.type === 'TEXT' && typeof node.fontName === 'object' && node.fontName !== null) {
+    fontsToLoad.add(`${node.fontName.family}:${node.fontName.style}`);
+  }
+  
+  if ('children' in node && node.children) {
+    for (const child of node.children) {
+      collectFontsFromNode(child, fontsToLoad);
+    }
+  }
+}
+
+// Preload fonts from a component to avoid font loading errors
+async function preloadFontsFromComponent(component: ComponentNode) {
+  const fontsToLoad = new Set<string>();
+  
+  // Use the helper function to collect fonts
+  collectFontsFromNode(component, fontsToLoad);
+  
+  // Load all fonts
+  const fontPromises = Array.from(fontsToLoad).map(fontString => {
+    const [family, style] = fontString.split(':');
+    return figma.loadFontAsync({ family, style });
+  });
+  
+  try {
+    await Promise.all(fontPromises);
+    console.log(`Preloaded ${fontsToLoad.size} fonts from component`);
+  } catch (error) {
+    console.warn('Some fonts failed to load:', error);
+  }
+}
+
+// Component configuration handlers
+async function handleSaveComponentMapping(payload?: { 
+  platform?: string; 
+  layout?: string; 
+  componentId?: string;
+  libraryId?: string;
+  libraryName?: string;
+}) {
+  if (!payload?.platform || !payload?.layout || !payload?.componentId) {
+    figma.ui.postMessage({ 
+      type: 'error', 
+      error: 'Missing required parameters for component mapping' 
+    });
+    return;
+  }
+  
+  const key = `${payload.platform}-${payload.layout}`;
+  if (COMPONENT_MAPPINGS[key]) {
+    COMPONENT_MAPPINGS[key].componentId = payload.componentId;
+    COMPONENT_MAPPINGS[key].libraryId = payload.libraryId || '';
+    COMPONENT_MAPPINGS[key].libraryName = payload.libraryName || '';
+    await figma.clientStorage.setAsync('component-mappings', COMPONENT_MAPPINGS);
+    figma.ui.postMessage({ 
+      type: 'componentMappingSaved', 
+      success: true,
+      key,
+      componentId: payload.componentId,
+      libraryId: payload.libraryId,
+      libraryName: payload.libraryName
+    });
+  }
+}
+
+async function handleGetSelectedComponentId() {
+  const selection = figma.currentPage.selection;
+  
+  if (selection.length === 0) {
+    figma.ui.postMessage({ 
+      type: 'error', 
+      error: 'Please select a component first' 
+    });
+    return;
+  }
+  
+  const node = selection[0];
+  if (node.type !== 'COMPONENT' && node.type !== 'INSTANCE') {
+    figma.ui.postMessage({ 
+      type: 'error', 
+      error: 'Please select a component or component instance' 
+    });
+    return;
+  }
+  
+  let componentId: string;
+  let libraryId: string | undefined;
+  let libraryName: string | undefined;
+  
+  if (node.type === 'INSTANCE') {
+    const mainComponent = node.mainComponent;
+    if (!mainComponent) {
+      figma.ui.postMessage({ 
+        type: 'error', 
+        error: 'Could not find main component for instance' 
+      });
+      return;
+    }
+    
+    // Check if this is a library component
+    const isLibraryComponent = mainComponent.remote !== undefined;
+    
+    if (isLibraryComponent) {
+      // For library components, use the key
+      componentId = mainComponent.key;
+      libraryId = (mainComponent.remote as any)?.key;
+      libraryName = (mainComponent.remote as any)?.name;
+    } else {
+      // For local components, use the ID
+      componentId = mainComponent.id;
+      libraryId = undefined;
+      libraryName = undefined;
+    }
+  } else {
+    // Check if this is a library component
+    const isLibraryComponent = node.remote !== undefined;
+    
+    if (isLibraryComponent) {
+      // For library components, use the key
+      componentId = node.key;
+      libraryId = (node.remote as any)?.key;
+      libraryName = (node.remote as any)?.name;
+    } else {
+      // For local components, use the ID
+      componentId = node.id;
+      libraryId = undefined;
+      libraryName = undefined;
+    }
+  }
+  
+  figma.ui.postMessage({
+    type: 'selectedComponentId',
+    componentId,
+    componentName: node.name,
+    libraryId,
+    libraryName
+  });
+}
+
+async function handleLoadComponentMappings() {
+  try {
+    const saved = await figma.clientStorage.getAsync('component-mappings');
+    if (saved) {
+      Object.assign(COMPONENT_MAPPINGS, saved);
+    }
+    figma.ui.postMessage({
+      type: 'componentMappingsLoaded',
+      mappings: COMPONENT_MAPPINGS
+    });
+  } catch (error) {
+    console.error('Failed to load component mappings:', error);
   }
 }
 

@@ -8,6 +8,7 @@ import { Breadcrumb } from '../../components/ui/breadcrumb';
 import { MeshGradient } from '../../components/ui/mesh-gradient';
 import { PopulateFooter } from '../../components/ui/populate-footer';
 import { HorizontalScroll } from '../../components/ui/horizontal-scroll';
+import { SettingsPanel } from '../../components/ui/settings-panel';
 import type { TaxonomyItem, ProductItem, CategoryBreadcrumb, CategoryNavigationState } from '../../types/tesco';
 
 interface AppState {
@@ -33,6 +34,15 @@ interface AppState {
     scrollTop: number;
     canScrollDown: boolean;
   };
+  // Component configuration
+  platform: 'app' | 'mobile-web' | 'desktop-web';
+  layout: 'grid' | 'vertical' | 'horizontal';
+  isSettingsOpen: boolean;
+  componentMappings: Record<string, any>;
+  capturedComponentId: string | null;
+  capturedComponentName: string | null;
+  capturedLibraryId: string | null;
+  capturedLibraryName: string | null;
 }
 
 export class App extends React.Component<{}, AppState> {
@@ -73,7 +83,16 @@ export class App extends React.Component<{}, AppState> {
       scrollState: {
         scrollTop: 0,
         canScrollDown: false
-      }
+      },
+      // Component configuration
+      platform: 'app',
+      layout: 'grid',
+      isSettingsOpen: false,
+      componentMappings: {},
+      capturedComponentId: null,
+      capturedComponentName: null,
+      capturedLibraryId: null,
+      capturedLibraryName: null
     };
   }
 
@@ -99,6 +118,9 @@ export class App extends React.Component<{}, AppState> {
     
     // Load recent searches from storage
     this.sendMessage('loadRecentSearches');
+    
+    // Load component mappings
+    this.sendMessage('loadComponentMappings');
 
     // Expose populateTiles function globally so Figma UI button can call it
     (window as any).populateTiles = this.populateTiles;
@@ -267,6 +289,30 @@ export class App extends React.Component<{}, AppState> {
         }
         break;
         
+      case 'componentMappingsLoaded':
+        this.setState({ componentMappings: msg.mappings });
+        break;
+
+      case 'selectedComponentId':
+        this.setState({ 
+          capturedComponentId: msg.componentId,
+          capturedComponentName: msg.componentName,
+          capturedLibraryId: msg.libraryId || null,
+          capturedLibraryName: msg.libraryName || null
+        });
+        break;
+
+      case 'componentMappingSaved':
+        this.setState({ 
+          successMessage: 'Component mapping saved!',
+          capturedComponentId: null,
+          capturedComponentName: null,
+          capturedLibraryId: null,
+          capturedLibraryName: null
+        });
+        this.sendMessage('loadComponentMappings');
+        break;
+        
       case 'error':
         this.setState({ error: msg.error, loading: false });
         break;
@@ -278,6 +324,42 @@ export class App extends React.Component<{}, AppState> {
 
   sendMessage = (type: string, payload?: any) => {
     parent.postMessage({ pluginMessage: { type, payload } }, '*');
+  };
+
+  // Component configuration handlers
+  handlePlatformChange = (platform: string) => {
+    this.setState({ platform: platform as any });
+  };
+
+  handleLayoutChange = (layout: string) => {
+    this.setState({ layout: layout as any });
+  };
+
+  handleOpenSettings = () => {
+    this.setState({ isSettingsOpen: true });
+  };
+
+  handleCloseSettings = () => {
+    this.setState({ 
+      isSettingsOpen: false, 
+      capturedComponentId: null,
+      capturedLibraryId: null,
+      capturedLibraryName: null
+    });
+  };
+
+  handleCaptureComponent = () => {
+    this.sendMessage('getSelectedComponentId');
+  };
+
+  handleSaveMapping = (componentId: string, libraryId?: string, libraryName?: string) => {
+    this.sendMessage('saveComponentMapping', {
+      platform: this.state.platform,
+      layout: this.state.layout,
+      componentId,
+      libraryId,
+      libraryName
+    });
   };
 
   loadCategories = () => {
@@ -528,7 +610,9 @@ export class App extends React.Component<{}, AppState> {
     // Send message to backend to populate selected tiles
     this.sendMessage('populateSelectedTiles', {
       products: this.state.products,
-      selectedProducts: this.state.selectedProducts
+      selectedProducts: this.state.selectedProducts,
+      platform: this.state.platform,
+      layout: this.state.layout
     });
   };
 
@@ -804,6 +888,11 @@ export class App extends React.Component<{}, AppState> {
             <PopulateFooter 
               onPopulate={this.populateTiles}
               productCount={selectedProducts.length > 0 ? selectedProducts.length : products.length}
+              platform={this.state.platform}
+              layout={this.state.layout}
+              onPlatformChange={this.handlePlatformChange}
+              onLayoutChange={this.handleLayoutChange}
+              onOpenSettings={this.handleOpenSettings}
             />
           </div>
         )}
@@ -821,6 +910,21 @@ export class App extends React.Component<{}, AppState> {
           onSuggestionSelect={this.handleSuggestionSelect}
           onSearch={this.searchProducts}
           loading={loading}
+        />
+        
+        {/* Settings Panel */}
+        <SettingsPanel
+          isOpen={this.state.isSettingsOpen}
+          onClose={this.handleCloseSettings}
+          platform={this.state.platform}
+          layout={this.state.layout}
+          componentMappings={this.state.componentMappings}
+          onCaptureComponent={this.handleCaptureComponent}
+          onSaveMapping={this.handleSaveMapping}
+          capturedComponentId={this.state.capturedComponentId}
+          capturedComponentName={this.state.capturedComponentName}
+          capturedLibraryId={this.state.capturedLibraryId}
+          capturedLibraryName={this.state.capturedLibraryName}
         />
         </div>
       </MeshGradient>
