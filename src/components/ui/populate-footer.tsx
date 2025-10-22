@@ -2,6 +2,183 @@ import * as React from 'react';
 
 const forwardIcon = "data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.29077 3.88744L15.6963 11.9995L7.29102 20.1039L8.33217 21.1837L17.8569 12L8.33242 2.80811L7.29077 3.88744Z' fill='white'/%3E%3C/svg%3E";
 
+const checkIcon = "data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.33398 10L8.33398 15L16.6673 5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+
+const chevronDownIcon = "data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+
+// Add animation styles with single variant
+const animationStyles = `
+  @keyframes dropdownSlide {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
+interface DropdownOption {
+  value: string;
+  label: string;
+}
+
+interface DropdownProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: DropdownOption[];
+  label?: string;
+}
+
+function CustomDropdown({ value, onChange, options, label }: DropdownProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [hoveredOption, setHoveredOption] = React.useState<string | null>(null);
+  const [showAbove, setShowAbove] = React.useState(true);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isPressed, setIsPressed] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  // Inject animation styles on mount
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = animationStyles;
+    document.head.appendChild(style);
+    return () => style.remove();
+  }, []);
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const menuHeight = 120; // Approximate height of dropdown menu
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = window.innerHeight - buttonRect.bottom;
+
+      setShowAbove(spaceAbove >= menuHeight || spaceAbove > spaceBelow);
+    }
+  }, [isOpen]);
+
+  const selectedOption = options.find(opt => opt.value === value);
+
+  const handleSelect = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+  };
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onMouseDown={() => setIsPressed(true)}
+        onMouseUp={() => setIsPressed(false)}
+        className="box-border flex h-7 items-center pl-3 pr-1 py-1 relative shrink-0 bg-white overflow-clip rounded-lg shadow-[0px_1px_0px_0px_rgba(0,0,0,0.03),0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_1px_-0.5px_rgba(0,0,0,0.04),0px_2px_2px_-1px_rgba(0,0,0,0.04),0px_4px_4px_-2px_rgba(0,0,0,0.04),0px_8px_8px_-4px_rgba(0,0,0,0.03)] cursor-pointer hover:bg-gray-50 transition-all duration-200 ease-out"
+        style={{
+          minWidth: '110px',
+          transform: `scale(${isPressed ? 0.95 : isHovered ? 1.05 : 1})`
+        }}
+      >
+        <div className="flex gap-1 grow items-center">
+          <div className="flex gap-4 grow items-start overflow-clip">
+            <p className="leading-[18px] overflow-ellipsis overflow-hidden text-sm text-gray-800 whitespace-nowrap">
+              {selectedOption?.label || label}
+            </p>
+          </div>
+          <div className="flex gap-2 items-center shrink-0 relative w-6 h-6">
+            {/* Chevron down state */}
+            <img 
+              src={chevronDownIcon} 
+              alt="" 
+              className="absolute w-6 h-6"
+              style={{
+                transform: 'rotate(0deg)',
+                opacity: isOpen ? 0 : 1,
+                filter: isOpen ? 'blur(2px)' : 'blur(0px)',
+                transition: 'all 150ms cubic-bezier(0.17, 0.84, 0.44, 1)'
+              }}
+            />
+            {/* Chevron up state */}
+            <img 
+              src={chevronDownIcon} 
+              alt="" 
+              className="absolute w-6 h-6"
+              style={{
+                transform: 'rotate(180deg)',
+                opacity: isOpen ? 1 : 0,
+                filter: isOpen ? 'blur(0px)' : 'blur(2px)',
+                transition: 'all 150ms cubic-bezier(0.17, 0.84, 0.44, 1)'
+              }}
+            />
+          </div>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div 
+          ref={ref}
+          className={`absolute left-0 w-[110px] z-50 ${
+            showAbove ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
+          onMouseLeave={() => setHoveredOption(null)}
+          style={{
+            animationName: 'dropdownSlide',
+            animationDuration: '100ms',
+            animationTimingFunction: 'ease-out',
+            animationFillMode: 'backwards',
+            transformOrigin: showAbove ? 'bottom center' : 'top center'
+          }}
+        >
+          <div className="bg-gray-900 relative rounded-lg shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08),0px_2px_2px_-1px_rgba(0,0,0,0.08),0px_4px_4px_-2px_rgba(0,0,0,0.08),0px_8px_8px_-4px_rgba(0,0,0,0.08)]">
+            <div className="flex flex-col items-start overflow-clip p-2">
+              {options.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleSelect(option.value)}
+                  onMouseEnter={() => setHoveredOption(option.value)}
+                  className={`box-border flex gap-1 items-center pl-1 pr-2 py-1 rounded-[4px] w-full cursor-pointer transition-colors relative ${
+                    hoveredOption === option.value ? 'bg-[#007eb3]' : ''
+                  }`}
+                >
+                  <div className="relative shrink-0 w-5 h-5">
+                    {value === option.value && (
+                      <img src={checkIcon} alt="" className="block w-full h-full" />
+                    )}
+                  </div>
+                  <p className="leading-[18px] text-sm text-white whitespace-nowrap">
+                    {option.label}
+                  </p>
+                  {hoveredOption === option.value && (
+                    <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.1)] rounded-[4px]" />
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.08)] rounded-lg" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface PopulateFooterProps {
   onPopulate: () => void;
   productCount?: number;
@@ -21,6 +198,18 @@ export function PopulateFooter({
   onLayoutChange,
   onOpenSettings
 }: PopulateFooterProps) {
+  const platformOptions: DropdownOption[] = [
+    { value: 'app', label: 'App' },
+    { value: 'mobile-web', label: 'Mweb' },
+    { value: 'desktop-web', label: 'Desktop' }
+  ];
+
+  const layoutOptions: DropdownOption[] = [
+    { value: 'grid', label: 'Grid' },
+    { value: 'vertical', label: 'Vertical' },
+    { value: 'horizontal', label: 'Horizontal' }
+  ];
+
   return (
     <div className="flex gap-2 items-center justify-between w-full">
       <button
@@ -36,26 +225,20 @@ export function PopulateFooter({
       
       <div className="flex gap-2 items-center">
         {/* Platform Dropdown */}
-        <select 
+        <CustomDropdown
           value={platform}
-          onChange={(e) => onPlatformChange(e.target.value)}
-          className="text-xs px-2 py-1 rounded border"
-        >
-          <option value="app">App</option>
-          <option value="mobile-web">Mobile Web</option>
-          <option value="desktop-web">Desktop Web</option>
-        </select>
+          onChange={onPlatformChange}
+          options={platformOptions}
+          label="Platform"
+        />
         
         {/* Layout Dropdown */}
-        <select
+        <CustomDropdown
           value={layout}
-          onChange={(e) => onLayoutChange(e.target.value)}
-          className="text-xs px-2 py-1 rounded border"
-        >
-          <option value="grid">Grid</option>
-          <option value="vertical">Vertical</option>
-          <option value="horizontal">Horizontal</option>
-        </select>
+          onChange={onLayoutChange}
+          options={layoutOptions}
+          label="Layout"
+        />
 
         {productCount > 0 && (
           <span className="text-sm text-gray-600 mr-2">
