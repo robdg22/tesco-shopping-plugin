@@ -2,182 +2,9 @@ import * as React from 'react';
 
 const forwardIcon = "data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.29077 3.88744L15.6963 11.9995L7.29102 20.1039L8.33217 21.1837L17.8569 12L8.33242 2.80811L7.29077 3.88744Z' fill='white'/%3E%3C/svg%3E";
 
-const checkIcon = "data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.33398 10L8.33398 15L16.6673 5' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
+const checkIconPath = "M7.20847 15.8187L18 5.02721L17.154 4.18125L7.20847 14.1268L2.84596 9.76432L2 10.6103L7.20847 15.8187Z";
 
-const chevronDownIcon = "data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 9L12 15L18 9' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E";
-
-// Add animation styles with single variant
-const animationStyles = `
-  @keyframes dropdownSlide {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-`;
-
-interface DropdownOption {
-  value: string;
-  label: string;
-}
-
-interface DropdownProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: DropdownOption[];
-  label?: string;
-}
-
-function CustomDropdown({ value, onChange, options, label }: DropdownProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [hoveredOption, setHoveredOption] = React.useState<string | null>(null);
-  const [showAbove, setShowAbove] = React.useState(true);
-  const [isHovered, setIsHovered] = React.useState(false);
-  const [isPressed, setIsPressed] = React.useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
-
-  // Inject animation styles on mount
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = animationStyles;
-    document.head.appendChild(style);
-    return () => style.remove();
-  }, []);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
-  React.useEffect(() => {
-    if (isOpen && buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const menuHeight = 120; // Approximate height of dropdown menu
-      const spaceAbove = buttonRect.top;
-      const spaceBelow = window.innerHeight - buttonRect.bottom;
-
-      setShowAbove(spaceAbove >= menuHeight || spaceAbove > spaceBelow);
-    }
-  }, [isOpen]);
-
-  const selectedOption = options.find(opt => opt.value === value);
-
-  const handleSelect = (optionValue: string) => {
-    onChange(optionValue);
-    setIsOpen(false);
-  };
-
-  return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        ref={buttonRef}
-        onClick={() => setIsOpen(!isOpen)}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onMouseDown={() => setIsPressed(true)}
-        onMouseUp={() => setIsPressed(false)}
-        className="box-border flex h-7 items-center pl-3 pr-1 py-1 relative shrink-0 bg-white overflow-clip rounded-lg shadow-[0px_1px_0px_0px_rgba(0,0,0,0.03),0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_1px_-0.5px_rgba(0,0,0,0.04),0px_2px_2px_-1px_rgba(0,0,0,0.04),0px_4px_4px_-2px_rgba(0,0,0,0.04),0px_8px_8px_-4px_rgba(0,0,0,0.03)] cursor-pointer hover:bg-gray-50 transition-all duration-200 ease-out"
-        style={{
-          minWidth: '110px',
-          transform: `scale(${isPressed ? 0.95 : isHovered ? 1.05 : 1})`
-        }}
-      >
-        <div className="flex gap-1 grow items-center">
-          <div className="flex gap-4 grow items-start overflow-clip">
-            <p className="leading-[18px] overflow-ellipsis overflow-hidden text-sm text-gray-800 whitespace-nowrap">
-              {selectedOption?.label || label}
-            </p>
-          </div>
-          <div className="flex gap-2 items-center shrink-0 relative w-6 h-6">
-            {/* Chevron down state */}
-            <img 
-              src={chevronDownIcon} 
-              alt="" 
-              className="absolute w-6 h-6"
-              style={{
-                transform: 'rotate(0deg)',
-                opacity: isOpen ? 0 : 1,
-                filter: isOpen ? 'blur(2px)' : 'blur(0px)',
-                transition: 'all 150ms cubic-bezier(0.17, 0.84, 0.44, 1)'
-              }}
-            />
-            {/* Chevron up state */}
-            <img 
-              src={chevronDownIcon} 
-              alt="" 
-              className="absolute w-6 h-6"
-              style={{
-                transform: 'rotate(180deg)',
-                opacity: isOpen ? 1 : 0,
-                filter: isOpen ? 'blur(0px)' : 'blur(2px)',
-                transition: 'all 150ms cubic-bezier(0.17, 0.84, 0.44, 1)'
-              }}
-            />
-          </div>
-        </div>
-      </button>
-
-      {isOpen && (
-        <div 
-          ref={ref}
-          className={`absolute left-0 w-[110px] z-50 ${
-            showAbove ? 'bottom-full mb-2' : 'top-full mt-2'
-          }`}
-          onMouseLeave={() => setHoveredOption(null)}
-          style={{
-            animationName: 'dropdownSlide',
-            animationDuration: '100ms',
-            animationTimingFunction: 'ease-out',
-            animationFillMode: 'backwards',
-            transformOrigin: showAbove ? 'bottom center' : 'top center'
-          }}
-        >
-          <div className="bg-gray-900 relative rounded-lg shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08),0px_2px_2px_-1px_rgba(0,0,0,0.08),0px_4px_4px_-2px_rgba(0,0,0,0.08),0px_8px_8px_-4px_rgba(0,0,0,0.08)]">
-            <div className="flex flex-col items-start overflow-clip p-2">
-              {options.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleSelect(option.value)}
-                  onMouseEnter={() => setHoveredOption(option.value)}
-                  className={`box-border flex gap-1 items-center pl-1 pr-2 py-1 rounded-[4px] w-full cursor-pointer transition-colors relative ${
-                    hoveredOption === option.value ? 'bg-[#007eb3]' : ''
-                  }`}
-                >
-                  <div className="relative shrink-0 w-5 h-5">
-                    {value === option.value && (
-                      <img src={checkIcon} alt="" className="block w-full h-full" />
-                    )}
-                  </div>
-                  <p className="leading-[18px] text-sm text-white whitespace-nowrap">
-                    {option.label}
-                  </p>
-                  {hoveredOption === option.value && (
-                    <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.1)] rounded-[4px]" />
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.08)] rounded-lg" />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+type Platform = 'app' | 'mobile-web' | 'desktop-web';
 
 interface PopulateFooterProps {
   onPopulate: () => void;
@@ -189,6 +16,470 @@ interface PopulateFooterProps {
   onOpenSettings: () => void;
 }
 
+interface LayoutOption {
+  value: string;
+  label: string;
+  icon: string;
+}
+
+// Platform Dropdown Component
+function PlatformDropdown({ value, onChange }: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [hoveredOption, setHoveredOption] = React.useState<Platform | null>(null);
+  const [showAbove, setShowAbove] = React.useState(true);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isPressed, setIsPressed] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  const platformLabels: Record<Platform, string> = {
+    'app': 'App',
+    'mobile-web': 'Mweb',
+    'desktop-web': 'Desktop'
+  };
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const buttonRect = buttonRef.current.getBoundingClientRect();
+      const menuHeight = 120;
+      const spaceAbove = buttonRect.top;
+      const spaceBelow = window.innerHeight - buttonRect.bottom;
+
+      setShowAbove(spaceAbove >= menuHeight || spaceAbove > spaceBelow);
+    }
+  }, [isOpen]);
+
+  const handleSelect = (platform: Platform) => {
+    onChange(platform);
+    setIsOpen(false);
+  };
+
+  const currentPlatform = value as Platform;
+  const scalePressed = 0.98;
+  const scaleHovered = 1.02;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <style>{`
+        @keyframes dropdownSlideFromTop {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes dropdownSlideFromBottom {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <button 
+        ref={buttonRef}
+        onClick={() => setIsOpen(!isOpen)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onMouseDown={() => setIsPressed(true)}
+        onMouseUp={() => setIsPressed(false)}
+        className="box-border flex h-[28px] items-center pl-[12px] pr-[4px] py-[4px] relative w-[110px] bg-white overflow-clip rounded-[8px] shadow-[0px_1px_0px_0px_rgba(0,0,0,0.03),0px_0px_0px_1px_rgba(0,0,0,0.08),0px_1px_1px_-0.5px_rgba(0,0,0,0.04),0px_2px_2px_-1px_rgba(0,0,0,0.04),0px_4px_4px_-2px_rgba(0,0,0,0.04),0px_8px_8px_-4px_rgba(0,0,0,0.03)] cursor-pointer hover:bg-gray-50 transition-all duration-200 ease-out"
+        style={{
+          transform: `scale(${isPressed ? scalePressed : isHovered ? scaleHovered : 1})`
+        }}
+      >
+        <div className="flex gap-[4px] grow h-[24px] items-center pb-[2px]">
+          <div className="flex gap-[16px] grow items-start overflow-clip">
+            <p className="leading-[18px] overflow-ellipsis overflow-hidden text-sm text-[#333333] whitespace-nowrap">
+              {platformLabels[currentPlatform]}
+            </p>
+          </div>
+          <div className="flex gap-[8px] items-center relative shrink-0 w-[24px] h-[24px]">
+            <svg
+              className="absolute inset-0 size-[24px] text-[#666666] transition-all duration-150"
+              fill="none"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                transform: 'rotate(0deg)',
+                opacity: isOpen ? 0 : 1,
+                filter: isOpen ? 'blur(2px)' : 'blur(0px)',
+              }}
+            >
+              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <svg
+              className="absolute inset-0 size-[24px] text-[#666666] transition-all duration-150"
+              fill="none"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                transform: 'rotate(180deg)',
+                opacity: isOpen ? 1 : 0,
+                filter: isOpen ? 'blur(0px)' : 'blur(2px)',
+              }}
+            >
+              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div 
+          className={`absolute left-0 w-[110px] z-50 ${showAbove ? 'bottom-full mb-2' : 'top-full mt-2'}`}
+          onMouseLeave={() => setHoveredOption(null)}
+          style={{
+            animationName: showAbove ? 'dropdownSlideFromBottom' : 'dropdownSlideFromTop',
+            animationDuration: '100ms',
+            animationTimingFunction: 'ease-out',
+            animationFillMode: 'backwards',
+            transformOrigin: showAbove ? 'bottom center' : 'top center'
+          }}
+        >
+          <div className="bg-[#222222] relative rounded-[8px] shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08),0px_2px_2px_-1px_rgba(0,0,0,0.08),0px_4px_4px_-2px_rgba(0,0,0,0.08),0px_8px_8px_-4px_rgba(0,0,0,0.08)]">
+            <div className="flex flex-col items-start overflow-clip p-[8px] gap-0">
+              {(['app', 'mobile-web', 'desktop-web'] as Platform[]).map((platform) => (
+                <button
+                  key={platform}
+                  onClick={() => handleSelect(platform)}
+                  onMouseEnter={() => setHoveredOption(platform)}
+                  className={`flex gap-[4px] items-center pl-[4px] pr-[8px] py-[4px] rounded-[4px] w-full cursor-pointer ${
+                    hoveredOption === platform ? 'bg-[#007eb3] overflow-clip' : ''
+                  }`}
+                >
+                  <div className="relative shrink-0 w-[20px] h-[20px]">
+                    {currentPlatform === platform && (
+                      <svg className="block w-full h-full" fill="white" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d={checkIconPath} />
+                      </svg>
+                    )}
+                  </div>
+                  <p className="leading-[18px] text-sm text-white whitespace-nowrap">
+                    {platformLabels[platform]}
+                  </p>
+                  {hoveredOption === platform && (
+                    <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.1)] rounded-[4px]" />
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.08)] rounded-[8px]" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Icon components using exact SVG paths from project
+function GridIcon({ isActive }: { isActive: boolean }) {
+  return (
+    <div className="relative shrink-0 size-[20px]">
+      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <g filter={isActive ? "url(#gridGlowFilter)" : undefined}>
+          <path fillRule="evenodd" clipRule="evenodd" d="M18 2H11.5135V8.48649H18V2ZM12.8108 7.18919V3.2973H16.7027V7.18919H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
+          <path fillRule="evenodd" clipRule="evenodd" d="M2 18V11.5135H8.48649V18H2ZM3.2973 12.8108V16.7027H7.18919V12.8108H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
+          <path fillRule="evenodd" clipRule="evenodd" d="M11.5135 11.5135V18H18V11.5135H11.5135ZM12.8108 16.7027V12.8108H16.7027V16.7027H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
+          <path fillRule="evenodd" clipRule="evenodd" d="M2 8.48649V2H8.48649V8.48649H2ZM3.2973 3.2973V7.18919H7.18919V3.2973H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
+        </g>
+        {isActive && (
+          <defs>
+            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="gridGlowFilter" width="20" x="0" y="0">
+              <feFlood floodOpacity="0" result="BackgroundImageFix" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="8" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
+              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="4" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
+              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="2" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="1" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="0.5" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
+              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
+            </filter>
+          </defs>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function VerticalIcon({ isActive }: { isActive: boolean }) {
+  return (
+    <div className="relative shrink-0 size-[20px]">
+      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <g filter={isActive ? "url(#verticalGlowFilter)" : undefined}>
+          <path d="M10.6701 15.4347L17.0524 9.05237L18 10L10 18L2 10L2.94763 9.05237L9.32993 15.4347V2H10.6701V15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
+        </g>
+        {isActive && (
+          <defs>
+            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="verticalGlowFilter" width="20" x="0" y="0">
+              <feFlood floodOpacity="0" result="BackgroundImageFix" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="8" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
+              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="4" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
+              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="2" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="1" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="0.5" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
+              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
+            </filter>
+          </defs>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function HorizontalIcon({ isActive }: { isActive: boolean }) {
+  return (
+    <div className="relative shrink-0 size-[20px]">
+      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <g filter={isActive ? "url(#horizontalGlowFilter)" : undefined}>
+          <path d="M15.4347 9.32993L9.05237 2.94763L10 2L18 10L10 18L9.05237 17.0524L15.4347 10.6701H2V9.32993H15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
+        </g>
+        {isActive && (
+          <defs>
+            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="horizontalGlowFilter" width="20" x="0" y="0">
+              <feFlood floodOpacity="0" result="BackgroundImageFix" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="8" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
+              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="4" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
+              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="2" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="1" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
+              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+              <feOffset />
+              <feGaussianBlur stdDeviation="0.5" />
+              <feComposite in2="hardAlpha" operator="out" />
+              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
+              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
+              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
+            </filter>
+          </defs>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+function LayoutSegmentedControl({ value, onChange, options }: {
+  value: string;
+  onChange: (value: string) => void;
+  options: LayoutOption[];
+}) {
+  const [hoveredOption, setHoveredOption] = React.useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = React.useState(false);
+  const [hasShownTooltip, setHasShownTooltip] = React.useState(false);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = (optionValue: string) => {
+    setHoveredOption(optionValue);
+    
+    if (hasShownTooltip) {
+      setShowTooltip(true);
+    } else {
+      timeoutRef.current = setTimeout(() => {
+        setShowTooltip(true);
+        setHasShownTooltip(true);
+      }, 1000);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setHoveredOption(null);
+    setShowTooltip(false);
+  };
+
+  const activeIndex = options.findIndex(opt => opt.value === value);
+  const activeOption = options.find(opt => opt.value === value);
+
+  const getIcon = (optionValue: string, isActive: boolean) => {
+    switch (optionValue) {
+      case 'grid':
+        return <GridIcon isActive={isActive} />;
+      case 'vertical':
+        return <VerticalIcon isActive={isActive} />;
+      case 'horizontal':
+        return <HorizontalIcon isActive={isActive} />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div 
+        className="bg-neutral-200 h-[32px] rounded-[16px] shadow-[0px_-1px_1px_1px_rgba(255,255,255,0.12),0px_0px_0px_1px_rgba(0,0,0,0.1)] flex items-center px-[2px] py-0 relative"
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Animated background */}
+        <div
+          className="absolute bg-white rounded-[36px] shadow-[0px_1px_0px_0px_rgba(0,0,0,0.01),0px_1px_1px_-0.5px_rgba(0,0,0,0.04),0px_2px_2px_-1px_rgba(0,0,0,0.04),0px_4px_4px_-2px_rgba(0,0,0,0.04),0px_8px_8px_-4px_rgba(0,0,0,0.03)] h-[28px] w-[44px]"
+          style={{
+            transform: `translateX(${activeIndex * 44}px)`,
+            transition: 'transform 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67)',
+          }}
+        >
+          <div className="absolute inset-0 pointer-events-none shadow-[0px_-1px_0.4px_0px_inset_rgba(0,0,0,0.03)] rounded-[36px]" />
+        </div>
+
+        {/* Control items */}
+        {options.map((option, index) => (
+          <button
+            key={option.value}
+            onClick={() => onChange(option.value)}
+            onMouseEnter={() => handleMouseEnter(option.value)}
+            className="box-border content-stretch flex items-center justify-center px-[12px] py-[4px] relative rounded-[36px] shrink-0 cursor-pointer z-10"
+            style={{
+              transform: hoveredOption === option.value && value !== option.value 
+                ? 'scale(1.03)' 
+                : 'scale(1)',
+            }}
+            onMouseDown={(e) => {
+              if (value !== option.value) {
+                e.currentTarget.style.transform = 'scale(0.97)';
+              }
+            }}
+            onMouseUp={(e) => {
+              if (value !== option.value) {
+                e.currentTarget.style.transform = hoveredOption === option.value ? 'scale(1.03)' : 'scale(1)';
+              }
+            }}
+            title={`${option.label} layout`}
+          >
+            {getIcon(option.value, value === option.value)}
+          </button>
+        ))}
+      </div>
+
+      {/* Tooltip */}
+      {hoveredOption && showTooltip && (
+        <div
+          className="absolute bottom-full mb-[8px] pointer-events-none z-20"
+          style={{
+            animation: 'fadeInScale 100ms ease-out',
+            left: `${(options.findIndex(opt => opt.value === hoveredOption) * 44) + 22}px`,
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <style>{`
+            @keyframes fadeInScale {
+              from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(4px) scale(0.95);
+              }
+              to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+              }
+            }
+          `}</style>
+          <div className="bg-[#222222] relative rounded-[8px] shadow-[0px_1px_1px_-0.5px_rgba(0,0,0,0.08),0px_2px_2px_-1px_rgba(0,0,0,0.08),0px_4px_4px_-2px_rgba(0,0,0,0.08),0px_8px_8px_-4px_rgba(0,0,0,0.08)] px-[8px] py-[4px]">
+            <p className="text-sm text-white whitespace-nowrap">
+              {options.find(opt => opt.value === hoveredOption)?.label}
+            </p>
+            <div className="absolute inset-0 pointer-events-none shadow-[0px_0px_0px_1px_inset_rgba(255,255,255,0.08)] rounded-[8px]" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function PopulateFooter({ 
   onPopulate, 
   productCount = 0,
@@ -198,20 +489,20 @@ export function PopulateFooter({
   onLayoutChange,
   onOpenSettings
 }: PopulateFooterProps) {
-  const platformOptions: DropdownOption[] = [
+  const platformOptions = [
     { value: 'app', label: 'App' },
-    { value: 'mobile-web', label: 'Mweb' },
-    { value: 'desktop-web', label: 'Desktop' }
+    { value: 'mobile-web', label: 'Mobile Web' },
+    { value: 'desktop-web', label: 'Desktop Web' }
   ];
 
-  const layoutOptions: DropdownOption[] = [
-    { value: 'grid', label: 'Grid' },
-    { value: 'vertical', label: 'Vertical' },
-    { value: 'horizontal', label: 'Horizontal' }
+  const layoutOptions: LayoutOption[] = [
+    { value: 'grid', label: 'Grid', icon: 'grid' },
+    { value: 'vertical', label: 'Vertical', icon: 'vertical' },
+    { value: 'horizontal', label: 'Horizontal', icon: 'horizontal' }
   ];
 
   return (
-    <div className="flex gap-2 items-center justify-between w-full">
+    <div className="flex gap-5 items-center justify-between w-full">
       <button
         onClick={onOpenSettings}
         className="text-gray-600 hover:text-gray-800 p-1"
@@ -223,28 +514,19 @@ export function PopulateFooter({
         </svg>
       </button>
       
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-5 items-center">
         {/* Platform Dropdown */}
-        <CustomDropdown
+        <PlatformDropdown
           value={platform}
           onChange={onPlatformChange}
-          options={platformOptions}
-          label="Platform"
         />
         
-        {/* Layout Dropdown */}
-        <CustomDropdown
+        {/* Layout Segmented Control */}
+        <LayoutSegmentedControl
           value={layout}
           onChange={onLayoutChange}
           options={layoutOptions}
-          label="Layout"
         />
-
-        {productCount > 0 && (
-          <span className="text-sm text-gray-600 mr-2">
-            {productCount} product{productCount !== 1 ? 's' : ''} ready
-          </span>
-        )}
         
         <button
           onClick={onPopulate}
