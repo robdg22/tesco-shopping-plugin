@@ -739,15 +739,6 @@ export class App extends React.Component<{}, AppState> {
           </div>
 
           
-          {/* Breadcrumb for search results and category navigation */}
-          {(viewMode === 'search' || this.state.categoryNavigation.breadcrumbs.length > 1) && (
-            <Breadcrumb 
-              breadcrumbs={this.state.categoryNavigation.breadcrumbs}
-              onBreadcrumbClick={this.navigateBack}
-              resultCount={viewMode === 'search' && !this.state.categoryNavigation.isShowingProducts ? this.state.totalResults : undefined}
-            />
-          )}
-          
           {/* Recent Searches - only show when at home level */}
           {viewMode === 'categories' && recentSearches.length > 0 && this.state.categoryNavigation.breadcrumbs.length === 1 && (
             <HorizontalScroll className="w-full">
@@ -777,16 +768,31 @@ export class App extends React.Component<{}, AppState> {
 
         {/* Main Content */}
         <div 
-          className="bg-white h-[494px] w-full max-w-[376px] rounded-xl relative overflow-hidden"
+          className="bg-white h-[494px] w-full max-w-[376px] rounded-xl relative overflow-hidden flex flex-col"
           style={{
             boxShadow: '0 -1px 0 0 rgba(0, 0, 0, 0.04) inset, 0 1px 0 0 rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 1px -0.5px rgba(0, 0, 0, 0.04), 0 2px 2px -1px rgba(0, 0, 0, 0.04), 0 4px 4px -2px rgba(0, 0, 0, 0.04), 0 8px 8px -4px rgba(0, 0, 0, 0.04), 0 0 0 2px rgba(255, 255, 255, 0.20)'
           }}
         >
+          {/* Breadcrumb Header - Inside Main Content */}
+          {(viewMode === 'search' || this.state.categoryNavigation.breadcrumbs.length > 1) && (
+            <div 
+              className="w-full bg-[#f6f6f6] px-2 py-2 shrink-0 rounded-tl-xl rounded-tr-xl sticky top-0 z-10"
+              style={{
+                boxShadow: '0px 1px 0px 0px rgba(0,0,0,0.03), 0px 1px 1px -0.5px rgba(0,0,0,0.04), 0px 2px 2px -1px rgba(0,0,0,0.04), 0px 4px 4px -2px rgba(0,0,0,0.04), 0px 0px 0px 1px rgba(255,255,255,0.5)'
+              }}
+            >
+              <Breadcrumb 
+                breadcrumbs={this.state.categoryNavigation.breadcrumbs}
+                onBreadcrumbClick={this.navigateBack}
+                resultCount={viewMode === 'search' && !this.state.categoryNavigation.isShowingProducts ? this.state.totalResults : undefined}
+              />
+            </div>
+          )}
           {viewMode === 'categories' ? (
             <>
               {/* Category Content with Scroll Detection */}
               <div 
-                className="h-[494px] overflow-y-auto scrollbar-hide"
+                className="flex-1 overflow-y-auto scrollbar-hide relative"
                 onScroll={this.handleContentScroll}
               >
                 <CategoryGrid
@@ -794,42 +800,15 @@ export class App extends React.Component<{}, AppState> {
                   onCategoryClick={this.browseCategoryProducts}
                   loading={categoriesLoading}
                   columns={4}
-                  className="px-1 py-5"
+                  className="px-1 py-1"
                 />
-              </div>
-              
-              {/* Top Gradient Blur - When scrolled down */}
-              {this.state.scrollState.scrollTop > 0 && (
-                <div className="gradient-blur-top">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>
-              )}
-              
-              {/* Bottom Gradient Blur - Always shown, fades out near bottom */}
-              <div 
-                className="gradient-blur"
-                style={{
-                  opacity: this.state.scrollState.canScrollDown ? 1 : Math.max(0, 1 - (this.state.scrollState.scrollTop / 100))
-                }}
-              >
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
               </div>
             </>
           ) : (
             <>
               {/* Search Results with Scroll Detection */}
               <div 
-                className="h-[494px] overflow-y-auto scrollbar-hide"
+                className="flex-1 overflow-y-auto scrollbar-hide relative"
                 onScroll={this.handleContentScroll}
               >
                 <ProductGrid
@@ -838,39 +817,12 @@ export class App extends React.Component<{}, AppState> {
                   selectedProducts={selectedProducts}
                   onProductSelect={this.handleProductSelect}
                   columns={3}
-                  className="px-1 py-5"
+                  className="px-1 py-1"
                   emptyMessage={searchTerm ? `No products found for "${searchTerm}"` : "No products found"}
                   hasMoreResults={this.state.hasMoreResults}
                   loadingMore={this.state.loadingMore}
                   onLoadMore={this.loadMoreProducts}
                 />
-              </div>
-              
-              {/* Top Gradient Blur - When scrolled down */}
-              {this.state.scrollState.scrollTop > 0 && (
-                <div className="gradient-blur-top">
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                  <div></div>
-                </div>
-              )}
-              
-              {/* Bottom Gradient Blur - Always shown, fades out near bottom */}
-              <div 
-                className="gradient-blur"
-                style={{
-                  opacity: this.state.scrollState.canScrollDown ? 1 : Math.max(0, 1 - (this.state.scrollState.scrollTop / 100))
-                }}
-              >
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
               </div>
             </>
           )}

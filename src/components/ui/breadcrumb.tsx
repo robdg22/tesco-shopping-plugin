@@ -11,7 +11,7 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, className }: BreadcrumbProps) {
   return (
-    <div className={cn("flex gap-[2px] items-center justify-center max-w-[664px] overflow-hidden", className)}>
+    <div className={cn("flex gap-[2px] items-center justify-start max-w-[664px] overflow-hidden", className)}>
       {/* Render all breadcrumbs */}
       {breadcrumbs.map((breadcrumb, index) => (
         <React.Fragment key={breadcrumb.id}>
@@ -28,7 +28,7 @@ export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, classN
                   fillRule="evenodd" 
                   clipRule="evenodd" 
                   d="M8.14248 2.29724L3.04248 6.34724V13.6972H6.64248V8.89724H9.64248V13.6972H13.2425V6.34724L8.14248 2.29724Z" 
-                  stroke="#00539F" 
+                  stroke="#666666" 
                   strokeWidth="1.5"
                 />
               </svg>
@@ -36,9 +36,7 @@ export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, classN
             
             {/* Category name for non-home breadcrumbs */}
             {breadcrumb.level !== 'home' && (
-              <span className={`font-tesco-regular leading-4 text-xs whitespace-nowrap max-w-[100px] truncate ${
-                index === breadcrumbs.length - 1 ? 'text-[#666666]' : 'text-[#00539F]'
-              }`}>
+              <span className={`font-tesco-bold leading-4 text-xs whitespace-nowrap max-w-[100px] truncate text-[#666666]`}>
                 {breadcrumb.name}
               </span>
             )}
@@ -72,7 +70,7 @@ export function Breadcrumb({ breadcrumbs, onBreadcrumbClick, resultCount, classN
           </div>
 
           {/* Results Text */}
-          <p className="font-tesco-regular leading-4 text-[#333333] text-xs whitespace-nowrap">
+          <p className="font-tesco-bold leading-4 text-[#666666] text-xs whitespace-nowrap">
             {resultCount ? `${resultCount} results` : 'results'}
           </p>
         </div>
