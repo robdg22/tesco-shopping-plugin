@@ -12,6 +12,7 @@ interface SettingsPanelProps {
   capturedComponentName: string | null;
   capturedLibraryId: string | null;
   capturedLibraryName: string | null;
+  onExtractMappings?: () => void;
 }
 
 export function SettingsPanel({

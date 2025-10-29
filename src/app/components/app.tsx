@@ -362,6 +362,10 @@ export class App extends React.Component<{}, AppState> {
     });
   };
 
+  handleExtractMappings = () => {
+    this.sendMessage('extractComponentMappings');
+  };
+
   loadCategories = () => {
     this.setState({ categoriesLoading: true, error: null });
     this.sendMessage('getTaxonomy');
@@ -873,6 +877,7 @@ export class App extends React.Component<{}, AppState> {
           componentMappings={this.state.componentMappings}
           onCaptureComponent={this.handleCaptureComponent}
           onSaveMapping={this.handleSaveMapping}
+          onExtractMappings={this.handleExtractMappings}
           capturedComponentId={this.state.capturedComponentId}
           capturedComponentName={this.state.capturedComponentName}
           capturedLibraryId={this.state.capturedLibraryId}
