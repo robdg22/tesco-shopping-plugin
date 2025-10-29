@@ -671,7 +671,10 @@ async function createInstancesInFrame(
   if (hasLibraryInfo || isComponentKey) {
     // Component is from a library - use importComponentByKeyAsync
     try {
-      component = await figma.importComponentByKeyAsync(config.componentId);
+      // For library components, the key format should be libraryFileKey:componentId
+      const componentKey = hasLibraryInfo ? `${config.libraryId}:${config.componentId}` : config.componentId;
+      console.log('Importing component with key:', componentKey);
+      component = await figma.importComponentByKeyAsync(componentKey);
     } catch (error) {
       throw new Error(`Failed to import library component: ${config.componentId}. Make sure the library is published and accessible.`);
     }
