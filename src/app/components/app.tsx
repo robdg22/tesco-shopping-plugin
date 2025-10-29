@@ -363,7 +363,7 @@ export class App extends React.Component<{}, AppState> {
   };
 
   handleExtractMappings = () => {
-    this.sendMessage('extractComponentMappings');
+    this.sendMessage('extractMappings');
   };
 
   loadCategories = () => {

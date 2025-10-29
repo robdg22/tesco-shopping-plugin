@@ -3,7 +3,7 @@ import { COMPONENT_MAPPINGS, AUTOLAYOUT_CONFIG } from './config/component-config
 
 // Types for API communication
 interface TescoAPIMessage {
-  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches' | 'populateSelectedTiles' | 'saveComponentMapping' | 'getSelectedComponentId' | 'loadComponentMappings';
+  type: 'searchProducts' | 'getTaxonomy' | 'getCategoryProducts' | 'getCategoryChildren' | 'searchWithSuggestions' | 'loadRecentSearches' | 'saveRecentSearches' | 'populateSelectedTiles' | 'saveComponentMapping' | 'getSelectedComponentId' | 'loadComponentMappings' | 'extractMappings';
   payload?: {
     query?: string;
     categoryId?: string;
@@ -60,6 +60,9 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
         break;
       case 'loadComponentMappings':
         await handleLoadComponentMappings();
+        break;
+      case 'extractMappings':
+        await handleExtractMappings();
         break;
       default:
         figma.ui.postMessage({ type: 'error', error: 'Unknown message type' });
@@ -888,6 +891,23 @@ async function handleLoadComponentMappings() {
   } catch (error) {
     console.error('Failed to load component mappings:', error);
   }
+}
+
+async function handleExtractMappings() {
+  const mappings: Record<string, any> = {};
+  for (const key in COMPONENT_MAPPINGS) {
+    if (COMPONENT_MAPPINGS.hasOwnProperty(key)) {
+      mappings[key] = {
+        componentId: COMPONENT_MAPPINGS[key].componentId,
+        libraryId: COMPONENT_MAPPINGS[key].libraryId,
+        libraryName: COMPONENT_MAPPINGS[key].libraryName
+      };
+    }
+  }
+  figma.ui.postMessage({
+    type: 'extractedMappings',
+    mappings: mappings
+  });
 }
 
 // Find all product tiles within the given nodes (recursively searches frames)
