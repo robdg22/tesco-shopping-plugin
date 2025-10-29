@@ -923,9 +923,20 @@ async function handleExtractMappings() {
                 const mainComponent = await child.getMainComponentAsync();
                 if (mainComponent) {
                   // Extract component info
-                  const componentId = mainComponent.key || mainComponent.id;
-                  const libraryId = mainComponent.remote ? (mainComponent.key?.includes(':') ? mainComponent.key.split(':')[0] : '') : '';
-                  const libraryName = mainComponent.remote ? 'Imported Library' : 'Local Components';
+                  let componentId = mainComponent.id;
+                  let libraryId = '';
+                  let libraryName = 'Local Components';
+                  
+                  // Check if this is a library component by looking at the key format
+                  if (mainComponent.key) {
+                    componentId = mainComponent.key;
+                    // Component key format: "libraryFileKey:componentId"
+                    const keyParts = mainComponent.key.split(':');
+                    if (keyParts.length === 2) {
+                      libraryId = keyParts[0];
+                      libraryName = 'Imported Library'; // Placeholder - will be filled in by user or from Figma
+                    }
+                  }
                   
                   // Try to match frame name to platform-layout combination
                   for (const key in COMPONENT_MAPPINGS) {
@@ -937,7 +948,7 @@ async function handleExtractMappings() {
                         componentName: mainComponent.name
                       };
                       foundCount++;
-                      console.log(`Found mapping for ${key}: ${componentId}`);
+                      console.log(`Found mapping for ${key}: ${componentId} (libraryId: ${libraryId})`);
                       break;
                     }
                   }
