@@ -894,20 +894,86 @@ async function handleLoadComponentMappings() {
 }
 
 async function handleExtractMappings() {
-  const mappings: Record<string, any> = {};
-  for (const key in COMPONENT_MAPPINGS) {
-    if (COMPONENT_MAPPINGS.hasOwnProperty(key)) {
-      mappings[key] = {
-        componentId: COMPONENT_MAPPINGS[key].componentId,
-        libraryId: COMPONENT_MAPPINGS[key].libraryId,
-        libraryName: COMPONENT_MAPPINGS[key].libraryName
-      };
+  try {
+    const selection = figma.currentPage.selection;
+    
+    if (selection.length === 0) {
+      figma.ui.postMessage({ 
+        type: 'error', 
+        error: 'Please select frames to scan for component instances (name them like: "app-grid", "mobile-web-vertical", etc.)'
+      });
+      return;
     }
+
+    const extractedMappings: Record<string, any> = {};
+    let foundCount = 0;
+
+    // Scan selected frames for component instances
+    for (const node of selection) {
+      if (node.type !== 'FRAME') continue;
+
+      const frameName = node.name.toLowerCase();
+      
+      // Look for instances within this frame
+      function scanForInstances(parent: any): void {
+        if (parent.children) {
+          for (const child of parent.children) {
+            if (child.type === 'INSTANCE') {
+              const mainComponent = child.mainComponent;
+              if (mainComponent) {
+                // Extract component info
+                const componentId = mainComponent.key || mainComponent.id;
+                const libraryId = mainComponent.remote ? (mainComponent.key?.includes(':') ? mainComponent.key.split(':')[0] : '') : '';
+                const libraryName = mainComponent.remote ? 'Imported Library' : 'Local Components';
+                
+                // Try to match frame name to platform-layout combination
+                for (const key in COMPONENT_MAPPINGS) {
+                  if (frameName.includes(key) || frameName.includes(key.replace('-', ' '))) {
+                    extractedMappings[key] = {
+                      componentId,
+                      libraryId,
+                      libraryName,
+                      componentName: mainComponent.name
+                    };
+                    foundCount++;
+                    console.log(`Found mapping for ${key}: ${componentId}`);
+                    break;
+                  }
+                }
+              }
+            }
+            
+            // Recursively scan nested frames
+            if (child.type === 'FRAME') {
+              scanForInstances(child);
+            }
+          }
+        }
+      }
+      
+      scanForInstances(node);
+    }
+
+    if (foundCount === 0) {
+      figma.ui.postMessage({
+        type: 'error',
+        error: 'No component instances found. Make sure your frames contain component instances and are named like: "app-grid", "mobile-web-vertical", etc.'
+      });
+      return;
+    }
+
+    figma.ui.postMessage({
+      type: 'extractedMappings',
+      mappings: extractedMappings,
+      foundCount
+    });
+
+  } catch (error) {
+    figma.ui.postMessage({
+      type: 'error',
+      error: `Failed to extract mappings: ${error instanceof Error ? error.message : 'Unknown error'}`
+    });
   }
-  figma.ui.postMessage({
-    type: 'extractedMappings',
-    mappings: mappings
-  });
 }
 
 // Find all product tiles within the given nodes (recursively searches frames)
