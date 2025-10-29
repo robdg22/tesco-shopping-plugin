@@ -909,22 +909,19 @@ async function handleExtractMappings() {
                   // The child.componentId should contain the library key for imported components
                   const instanceComponentId = child.componentId;
                   
-                  // Check if this is a library component (componentId contains ':')
-                  if (instanceComponentId && instanceComponentId.includes(':')) {
-                    componentId = instanceComponentId;
-                    const keyParts = instanceComponentId.split(':');
-                    if (keyParts.length >= 2) {
-                      libraryId = keyParts[0];
-                      libraryName = 'Imported Library';
-                    }
-                  } else if (mainComponent.id && mainComponent.id.includes(':')) {
-                    // Fallback to mainComponent.id if it has the key format
-                    componentId = mainComponent.id;
-                    const keyParts = mainComponent.id.split(':');
-                    if (keyParts.length >= 2) {
-                      libraryId = keyParts[0];
-                      libraryName = 'Imported Library';
-                    }
+                  // Log for debugging
+                  console.log('Instance info:', {
+                    instanceComponentId,
+                    mainComponentId: mainComponent.id,
+                    mainComponentKey: (mainComponent as any).key
+                  });
+                  
+                  // For library components, use the mainComponentKey as the libraryId
+                  // This is the full library file key needed for importComponentByKeyAsync
+                  if ((mainComponent as any).key) {
+                    componentId = mainComponent.id; // e.g., "330:9137"
+                    libraryId = (mainComponent as any).key; // e.g., "460285c805ef3d57d4777ada2d578eb344acfb8a"
+                    libraryName = 'Imported Library';
                   }
                   
                   // Try to match frame name to platform-layout combination
