@@ -927,15 +927,27 @@ async function handleExtractMappings() {
                   let libraryId = '';
                   let libraryName = 'Local Components';
                   
-                  // Check if this is a library component by looking at the key format
-                  if (mainComponent.key) {
-                    componentId = mainComponent.key;
-                    // Component key format: "libraryFileKey:componentId"
-                    const keyParts = mainComponent.key.split(':');
+                  console.log('Main component:', {
+                    id: mainComponent.id,
+                    key: (mainComponent as any).key,
+                    componentId: child.componentId,
+                    remote: (mainComponent as any).remote,
+                    name: mainComponent.name
+                  });
+                  
+                  // Try different ways to get the component key
+                  const componentKey = (mainComponent as any).key || child.componentId;
+                  
+                  if (componentKey && componentKey.includes(':')) {
+                    componentId = componentKey;
+                    const keyParts = componentKey.split(':');
                     if (keyParts.length === 2) {
                       libraryId = keyParts[0];
-                      libraryName = 'Imported Library'; // Placeholder - will be filled in by user or from Figma
+                      libraryName = 'Imported Library';
+                      console.log(`Found library component: libraryId=${libraryId}, componentId=${componentId}`);
                     }
+                  } else if (componentKey && componentKey !== mainComponent.id) {
+                    componentId = componentKey;
                   }
                   
                   // Try to match frame name to platform-layout combination
