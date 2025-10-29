@@ -779,29 +779,11 @@ async function handleSaveComponentMapping(payload?: {
   libraryId?: string;
   libraryName?: string;
 }) {
-  if (!payload?.platform || !payload?.layout || !payload?.componentId) {
-    figma.ui.postMessage({ 
-      type: 'error', 
-      error: 'Missing required parameters for component mapping' 
-    });
-    return;
-  }
-  
-  const key = `${payload.platform}-${payload.layout}`;
-  if (COMPONENT_MAPPINGS[key]) {
-    COMPONENT_MAPPINGS[key].componentId = payload.componentId;
-    COMPONENT_MAPPINGS[key].libraryId = payload.libraryId || '';
-    COMPONENT_MAPPINGS[key].libraryName = payload.libraryName || '';
-    await figma.clientStorage.setAsync('component-mappings', COMPONENT_MAPPINGS);
-    figma.ui.postMessage({ 
-      type: 'componentMappingSaved', 
-      success: true,
-      key,
-      componentId: payload.componentId,
-      libraryId: payload.libraryId,
-      libraryName: payload.libraryName
-    });
-  }
+  // Component mappings are locked and cannot be changed by users
+  figma.ui.postMessage({ 
+    type: 'error', 
+    error: 'Component mappings are locked and cannot be modified. Contact your administrator to update default configurations.' 
+  });
 }
 
 async function handleGetSelectedComponentId() {
@@ -880,10 +862,7 @@ async function handleGetSelectedComponentId() {
 
 async function handleLoadComponentMappings() {
   try {
-    const saved = await figma.clientStorage.getAsync('component-mappings');
-    if (saved) {
-      Object.assign(COMPONENT_MAPPINGS, saved);
-    }
+    // Always use defaults - users cannot override component mappings
     figma.ui.postMessage({
       type: 'componentMappingsLoaded',
       mappings: COMPONENT_MAPPINGS
