@@ -927,27 +927,25 @@ async function handleExtractMappings() {
                   let libraryId = '';
                   let libraryName = 'Local Components';
                   
-                  console.log('Main component:', {
-                    id: mainComponent.id,
-                    key: (mainComponent as any).key,
-                    componentId: child.componentId,
-                    remote: (mainComponent as any).remote,
-                    name: mainComponent.name
-                  });
+                  // The child.componentId should contain the library key for imported components
+                  const instanceComponentId = child.componentId;
                   
-                  // Try different ways to get the component key
-                  const componentKey = (mainComponent as any).key || child.componentId;
-                  
-                  if (componentKey && componentKey.includes(':')) {
-                    componentId = componentKey;
-                    const keyParts = componentKey.split(':');
-                    if (keyParts.length === 2) {
+                  // Check if this is a library component (componentId contains ':')
+                  if (instanceComponentId && instanceComponentId.includes(':')) {
+                    componentId = instanceComponentId;
+                    const keyParts = instanceComponentId.split(':');
+                    if (keyParts.length >= 2) {
                       libraryId = keyParts[0];
                       libraryName = 'Imported Library';
-                      console.log(`Found library component: libraryId=${libraryId}, componentId=${componentId}`);
                     }
-                  } else if (componentKey && componentKey !== mainComponent.id) {
-                    componentId = componentKey;
+                  } else if (mainComponent.id && mainComponent.id.includes(':')) {
+                    // Fallback to mainComponent.id if it has the key format
+                    componentId = mainComponent.id;
+                    const keyParts = mainComponent.id.split(':');
+                    if (keyParts.length >= 2) {
+                      libraryId = keyParts[0];
+                      libraryName = 'Imported Library';
+                    }
                   }
                   
                   // Try to match frame name to platform-layout combination
