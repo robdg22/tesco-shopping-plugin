@@ -671,10 +671,9 @@ async function createInstancesInFrame(
   if (hasLibraryInfo || isComponentKey) {
     // Component is from a library - use importComponentByKeyAsync
     try {
-      // For library components, the key format should be libraryFileKey/componentId
-      const componentKey = hasLibraryInfo ? `${config.libraryId}/${config.componentId}` : config.componentId;
-      console.log('Importing component with key:', componentKey);
-      component = await figma.importComponentByKeyAsync(componentKey);
+      // The componentId should already be the full component key
+      console.log('Importing component with key:', config.componentId);
+      component = await figma.importComponentByKeyAsync(config.componentId);
     } catch (error) {
       throw new Error(`Failed to import library component: ${config.componentId}. Make sure the library is published and accessible.`);
     }
@@ -905,26 +904,26 @@ async function handleExtractMappings() {
                 const mainComponent = await child.getMainComponentAsync();
                 if (mainComponent) {
                   // Extract component info
-                  let componentId = mainComponent.id;
+                  let componentId = '';
                   let libraryId = '';
                   let libraryName = 'Local Components';
                   
-                  // The child.componentId should contain the library key for imported components
-                  const instanceComponentId = child.componentId;
-                  
                   // Log for debugging
                   console.log('Instance info:', {
-                    instanceComponentId,
+                    instanceComponentId: child.componentId,
                     mainComponentId: mainComponent.id,
                     mainComponentKey: (mainComponent as any).key
                   });
                   
-                  // For library components, use the mainComponentKey as the libraryId
-                  // This is the full library file key needed for importComponentByKeyAsync
+                  // For library components, the mainComponentKey IS the component key
+                  // This is what importComponentByKeyAsync expects directly
                   if ((mainComponent as any).key) {
-                    componentId = mainComponent.id; // e.g., "330:9137"
-                    libraryId = (mainComponent as any).key; // e.g., "460285c805ef3d57d4777ada2d578eb344acfb8a"
+                    componentId = (mainComponent as any).key; // This is the actual component key for import
+                    libraryId = (mainComponent as any).key; // Keep the same for reference
                     libraryName = 'Imported Library';
+                  } else {
+                    // Local component - use the node ID
+                    componentId = mainComponent.id;
                   }
                   
                   // Try to match frame name to platform-layout combination

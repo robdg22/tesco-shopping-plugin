@@ -9,9 +9,9 @@ export interface ComponentConfig {
 // Default component mappings - UPDATE THESE WITH YOUR COMPONENT IDS FOR END USERS
 // These will be the default mappings that end users get without having to configure anything
 export const DEFAULT_COMPONENT_MAPPINGS: Record<string, ComponentConfig> = {
-  'app-grid': { platform: 'app', layout: 'grid', componentId: '330:9137', libraryName: 'DDS Shopping native domain library', libraryId: '460285c805ef3d57d4777ada2d578eb344acfb8a' },
-  'app-vertical': { platform: 'app', layout: 'vertical', componentId: '330:11902', libraryName: 'DDS Shopping native domain library', libraryId: '460285c805ef3d57d4777ada2d578eb344acfb8a' },
-  'app-horizontal': { platform: 'app', layout: 'horizontal', componentId: '330:41931', libraryName: 'DDS Shopping native domain library', libraryId: '460285c805ef3d57d4777ada2d578eb344acfb8a' },
+  'app-grid': { platform: 'app', layout: 'grid', componentId: '460285c805ef3d57d4777ada2d578eb344acfb8a', libraryName: 'DDS Shopping native domain library', libraryId: '460285c805ef3d57d4777ada2d578eb344acfb8a' },
+  'app-vertical': { platform: 'app', layout: 'vertical', componentId: 'd32bcf2b8ce4db5afa4b2a718a60c2075009b715', libraryName: 'DDS Shopping native domain library', libraryId: 'd32bcf2b8ce4db5afa4b2a718a60c2075009b715' },
+  'app-horizontal': { platform: 'app', layout: 'horizontal', componentId: '004c06075c5e082faaab349559abedfb86229e3a', libraryName: 'DDS Shopping native domain library', libraryId: '004c06075c5e082faaab349559abedfb86229e3a' },
   'mobile-web-grid': { platform: 'mobile-web', layout: 'grid', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
   'mobile-web-vertical': { platform: 'mobile-web', layout: 'vertical', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
   'mobile-web-horizontal': { platform: 'mobile-web', layout: 'horizontal', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
