@@ -12,15 +12,15 @@
   "ui": "dist/ui.html",
   "networkAccess": {
     "allowedDomains": [
+      "https://origin-preview1-mango.omnichannel.tescocloud.com",
       "https://api.tesco.com",
       "https://fonts.googleapis.com",
       "https://fonts.gstatic.com",
-      "https://tesco-proxy-b4fena2ys-robdgraham-gmailcoms-projects.vercel.app/api/tesco",
       "https://digitalcontent.api.tesco.com"
     ],
     "devAllowedDomains": [
       "http://localhost:3001"
     ],
-    "reasoning": "Development proxy server required for local testing of Tesco API integration, Google Fonts for fallback typography"
+    "reasoning": "Tesco Omnichannel API endpoint, Google Fonts for fallback typography"
   }
 }

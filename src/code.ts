@@ -75,10 +75,11 @@ figma.ui.onmessage = async (msg: TescoAPIMessage) => {
 
 // API Helper Functions
 async function makeGraphQLRequest(query: string, variables: Record<string, any> = {}) {
-  const response = await fetch('https://tesco-proxy-b4fena2ys-robdgraham-gmailcoms-projects.vercel.app/api/tesco', {
+  const response = await fetch('https://origin-preview1-mango.omnichannel.tescocloud.com/api', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Region': 'UK',
     },
     body: JSON.stringify({ query, variables }),
   });

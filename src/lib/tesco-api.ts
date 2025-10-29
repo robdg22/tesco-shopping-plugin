@@ -243,7 +243,7 @@ export const SEARCH_WITH_SUGGESTIONS_QUERY = `
 `
 
 // API Client Configuration
-const PROXY_URL = 'https://tesco-proxy-b4fena2ys-robdgraham-gmailcoms-projects.vercel.app/api/tesco'
+const PROXY_URL = 'https://origin-preview1-mango.omnichannel.tescocloud.com/api'
 
 // GraphQL Client
 export async function graphqlRequest<T>(
@@ -255,6 +255,7 @@ export async function graphqlRequest<T>(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Region": "UK",
       },
       body: JSON.stringify({ query, variables }),
     })
