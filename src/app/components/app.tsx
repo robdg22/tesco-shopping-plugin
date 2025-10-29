@@ -312,6 +312,14 @@ export class App extends React.Component<{}, AppState> {
         });
         this.sendMessage('loadComponentMappings');
         break;
+
+      case 'extractedMappings':
+        console.log('📸 Extracted mappings:', msg.mappings);
+        this.setState({ 
+          successMessage: 'Extracted component mappings!',
+          componentMappings: msg.mappings || {}
+        });
+        break;
         
       case 'error':
         this.setState({ error: msg.error, loading: false });
