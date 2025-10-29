@@ -915,43 +915,47 @@ async function handleExtractMappings() {
       const frameName = node.name.toLowerCase();
       
       // Look for instances within this frame
-      function scanForInstances(parent: any): void {
+      async function scanForInstances(parent: any): Promise<void> {
         if (parent.children) {
           for (const child of parent.children) {
             if (child.type === 'INSTANCE') {
-              const mainComponent = child.mainComponent;
-              if (mainComponent) {
-                // Extract component info
-                const componentId = mainComponent.key || mainComponent.id;
-                const libraryId = mainComponent.remote ? (mainComponent.key?.includes(':') ? mainComponent.key.split(':')[0] : '') : '';
-                const libraryName = mainComponent.remote ? 'Imported Library' : 'Local Components';
-                
-                // Try to match frame name to platform-layout combination
-                for (const key in COMPONENT_MAPPINGS) {
-                  if (frameName.includes(key) || frameName.includes(key.replace('-', ' '))) {
-                    extractedMappings[key] = {
-                      componentId,
-                      libraryId,
-                      libraryName,
-                      componentName: mainComponent.name
-                    };
-                    foundCount++;
-                    console.log(`Found mapping for ${key}: ${componentId}`);
-                    break;
+              try {
+                const mainComponent = await child.getMainComponentAsync();
+                if (mainComponent) {
+                  // Extract component info
+                  const componentId = mainComponent.key || mainComponent.id;
+                  const libraryId = mainComponent.remote ? (mainComponent.key?.includes(':') ? mainComponent.key.split(':')[0] : '') : '';
+                  const libraryName = mainComponent.remote ? 'Imported Library' : 'Local Components';
+                  
+                  // Try to match frame name to platform-layout combination
+                  for (const key in COMPONENT_MAPPINGS) {
+                    if (frameName.includes(key) || frameName.includes(key.replace('-', ' '))) {
+                      extractedMappings[key] = {
+                        componentId,
+                        libraryId,
+                        libraryName,
+                        componentName: mainComponent.name
+                      };
+                      foundCount++;
+                      console.log(`Found mapping for ${key}: ${componentId}`);
+                      break;
+                    }
                   }
                 }
+              } catch (error) {
+                console.warn('Failed to get main component:', error);
               }
             }
             
             // Recursively scan nested frames
             if (child.type === 'FRAME') {
-              scanForInstances(child);
+              await scanForInstances(child);
             }
           }
         }
       }
       
-      scanForInstances(node);
+      await scanForInstances(node);
     }
 
     if (foundCount === 0) {
