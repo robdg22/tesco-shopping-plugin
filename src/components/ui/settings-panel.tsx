@@ -26,7 +26,8 @@ export function SettingsPanel({
   capturedComponentId,
   capturedComponentName,
   capturedLibraryId,
-  capturedLibraryName
+  capturedLibraryName,
+  onExtractMappings
 }: SettingsPanelProps) {
   if (!isOpen) return null;
 
@@ -35,10 +36,21 @@ export function SettingsPanel({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold">Configure Component</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+          <div className="flex gap-2">
+            {onExtractMappings && (
+              <button
+                onClick={onExtractMappings}
+                className="px-3 py-1 bg-yellow-500 text-white text-xs rounded hover:bg-yellow-600 font-semibold"
+                title="Debug: Extract mappings from Figma"
+              >
+                🔧 Debug
+              </button>
+            )}
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+          </div>
         </div>
         
         <div className="space-y-4">
