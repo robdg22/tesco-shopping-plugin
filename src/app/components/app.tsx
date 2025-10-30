@@ -752,7 +752,7 @@ export class App extends React.Component<{}, AppState> {
 
           
           {/* Recent Searches - always show when available */}
-          {viewMode === 'categories' && recentSearches.length > 0 && (
+          {recentSearches.length > 0 && (
             <HorizontalScroll className="w-full">
               <FilterChipList
                 chips={recentSearches}
@@ -846,20 +846,19 @@ export class App extends React.Component<{}, AppState> {
           />
         </div>
 
-        {/* Populate Footer - Outside main container, only when products are shown */}
-        {viewMode === 'search' && products.length > 0 && !loading && (
-          <div className="w-full max-w-[376px]">
-            <PopulateFooter 
-              onPopulate={this.populateTiles}
-              productCount={selectedProducts.length > 0 ? selectedProducts.length : products.length}
-              platform={this.state.platform}
-              layout={this.state.layout}
-              onPlatformChange={this.handlePlatformChange}
-              onLayoutChange={this.handleLayoutChange}
-              onOpenSettings={this.handleOpenSettings}
-            />
-          </div>
-        )}
+        {/* Populate Footer - Always visible */}
+        <div className="w-full max-w-[376px]">
+          <PopulateFooter 
+            onPopulate={this.populateTiles}
+            productCount={selectedProducts.length > 0 ? selectedProducts.length : products.length}
+            platform={this.state.platform}
+            layout={this.state.layout}
+            onPlatformChange={this.handlePlatformChange}
+            onLayoutChange={this.handleLayoutChange}
+            onOpenSettings={this.handleOpenSettings}
+            disabled={products.length === 0 || loading}
+          />
+        </div>
 
         {/* No footer spacer needed with p-3 on container */}
         

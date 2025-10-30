@@ -14,6 +14,7 @@ interface PopulateFooterProps {
   onPlatformChange: (platform: string) => void;
   onLayoutChange: (layout: string) => void;
   onOpenSettings: () => void;
+  disabled?: boolean;
 }
 
 interface LayoutOption {
@@ -603,7 +604,8 @@ export function PopulateFooter({
   layout,
   onPlatformChange,
   onLayoutChange,
-  onOpenSettings
+  onOpenSettings,
+  disabled = false
 }: PopulateFooterProps) {
   const platformOptions = [
     { value: 'app', label: 'App' },
@@ -741,10 +743,11 @@ export function PopulateFooter({
         <div className="relative">
       <button
             ref={submitButtonRef}
-        onClick={onPopulate}
-            onMouseEnter={handleSubmitMouseEnter}
-            onMouseLeave={handleSubmitMouseLeave}
-        className="overflow-clip relative shrink-0 size-[40px] transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none" 
+        onClick={disabled ? undefined : onPopulate}
+            onMouseEnter={disabled ? undefined : handleSubmitMouseEnter}
+            onMouseLeave={disabled ? undefined : handleSubmitMouseLeave}
+        disabled={disabled}
+        className={`overflow-clip relative shrink-0 size-[40px] transition-all duration-200 focus:outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:scale-110 active:scale-95 cursor-pointer'}`}
         style={{
           borderRadius: '40px',
           background: '#E81C2D',
