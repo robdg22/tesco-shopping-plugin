@@ -287,51 +287,19 @@ function PlatformDropdown({ value, onChange }: {
 function GridIcon({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative shrink-0 size-[20px]">
-      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <g filter={isActive ? "url(#gridGlowFilter)" : undefined}>
-          <path fillRule="evenodd" clipRule="evenodd" d="M18 2H11.5135V8.48649H18V2ZM12.8108 7.18919V3.2973H16.7027V7.18919H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
-          <path fillRule="evenodd" clipRule="evenodd" d="M2 18V11.5135H8.48649V18H2ZM3.2973 12.8108V16.7027H7.18919V12.8108H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
-          <path fillRule="evenodd" clipRule="evenodd" d="M11.5135 11.5135V18H18V11.5135H11.5135ZM12.8108 16.7027V12.8108H16.7027V16.7027H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
-          <path fillRule="evenodd" clipRule="evenodd" d="M2 8.48649V2H8.48649V8.48649H2ZM3.2973 3.2973V7.18919H7.18919V3.2973H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
-        </g>
-        {isActive && (
-          <defs>
-            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="gridGlowFilter" width="20" x="0" y="0">
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="8" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
-              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="4" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
-              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="2" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="1" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="0.5" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
-              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
-            </filter>
-          </defs>
-        )}
+      <svg 
+        className="block size-full" 
+        fill="none" 
+        viewBox="0 0 20 20" 
+        xmlns="http://www.w3.org/2000/svg"
+        style={isActive ? {
+          filter: 'drop-shadow(0 0 16px rgba(0, 126, 179, 0.32)) drop-shadow(0 0 8px rgba(0, 126, 179, 0.16)) drop-shadow(0 0 4px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 2px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 1px rgba(0, 126, 179, 0.08))'
+        } : undefined}
+      >
+        <path fillRule="evenodd" clipRule="evenodd" d="M18 2H11.5135V8.48649H18V2ZM12.8108 7.18919V3.2973H16.7027V7.18919H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
+        <path fillRule="evenodd" clipRule="evenodd" d="M2 18V11.5135H8.48649V18H2ZM3.2973 12.8108V16.7027H7.18919V12.8108H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
+        <path fillRule="evenodd" clipRule="evenodd" d="M11.5135 11.5135V18H18V11.5135H11.5135ZM12.8108 16.7027V12.8108H16.7027V16.7027H12.8108Z" fill={isActive ? "#007EB3" : "#666666"} />
+        <path fillRule="evenodd" clipRule="evenodd" d="M2 8.48649V2H8.48649V8.48649H2ZM3.2973 3.2973V7.18919H7.18919V3.2973H3.2973Z" fill={isActive ? "#007EB3" : "#666666"} />
       </svg>
     </div>
   );
@@ -340,48 +308,16 @@ function GridIcon({ isActive }: { isActive: boolean }) {
 function VerticalIcon({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative shrink-0 size-[20px]">
-      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <g filter={isActive ? "url(#verticalGlowFilter)" : undefined}>
-          <path d="M10.6701 15.4347L17.0524 9.05237L18 10L10 18L2 10L2.94763 9.05237L9.32993 15.4347V2H10.6701V15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
-        </g>
-        {isActive && (
-          <defs>
-            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="verticalGlowFilter" width="20" x="0" y="0">
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="8" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
-              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="4" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
-              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="2" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="1" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="0.5" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
-              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
-            </filter>
-          </defs>
-        )}
+      <svg 
+        className="block size-full" 
+        fill="none" 
+        viewBox="0 0 20 20" 
+        xmlns="http://www.w3.org/2000/svg"
+        style={isActive ? {
+          filter: 'drop-shadow(0 0 16px rgba(0, 126, 179, 0.32)) drop-shadow(0 0 8px rgba(0, 126, 179, 0.16)) drop-shadow(0 0 4px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 2px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 1px rgba(0, 126, 179, 0.08))'
+        } : undefined}
+      >
+        <path d="M10.6701 15.4347L17.0524 9.05237L18 10L10 18L2 10L2.94763 9.05237L9.32993 15.4347V2H10.6701V15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
       </svg>
     </div>
   );
@@ -390,48 +326,16 @@ function VerticalIcon({ isActive }: { isActive: boolean }) {
 function HorizontalIcon({ isActive }: { isActive: boolean }) {
   return (
     <div className="relative shrink-0 size-[20px]">
-      <svg className="block size-full" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <g filter={isActive ? "url(#horizontalGlowFilter)" : undefined}>
-          <path d="M15.4347 9.32993L9.05237 2.94763L10 2L18 10L10 18L9.05237 17.0524L15.4347 10.6701H2V9.32993H15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
-        </g>
-        {isActive && (
-          <defs>
-            <filter colorInterpolationFilters="sRGB" filterUnits="userSpaceOnUse" height="20" id="horizontalGlowFilter" width="20" x="0" y="0">
-              <feFlood floodOpacity="0" result="BackgroundImageFix" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="8" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.32 0" />
-              <feBlend in2="BackgroundImageFix" mode="normal" result="effect1_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="4" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.16 0" />
-              <feBlend in2="effect1_dropShadow" mode="normal" result="effect2_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="2" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect2_dropShadow" mode="normal" result="effect3_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="1" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect3_dropShadow" mode="normal" result="effect4_dropShadow" />
-              <feColorMatrix in="SourceAlpha" result="hardAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-              <feOffset />
-              <feGaussianBlur stdDeviation="0.5" />
-              <feComposite in2="hardAlpha" operator="out" />
-              <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.08 0" />
-              <feBlend in2="effect4_dropShadow" mode="normal" result="effect5_dropShadow" />
-              <feBlend in="SourceGraphic" in2="effect5_dropShadow" mode="normal" result="shape" />
-            </filter>
-          </defs>
-        )}
+      <svg 
+        className="block size-full" 
+        fill="none" 
+        viewBox="0 0 20 20" 
+        xmlns="http://www.w3.org/2000/svg"
+        style={isActive ? {
+          filter: 'drop-shadow(0 0 16px rgba(0, 126, 179, 0.32)) drop-shadow(0 0 8px rgba(0, 126, 179, 0.16)) drop-shadow(0 0 4px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 2px rgba(0, 126, 179, 0.08)) drop-shadow(0 0 1px rgba(0, 126, 179, 0.08))'
+        } : undefined}
+      >
+        <path d="M15.4347 9.32993L9.05237 2.94763L10 2L18 10L10 18L9.05237 17.0524L15.4347 10.6701H2V9.32993H15.4347Z" fill={isActive ? "#007EB3" : "#666666"} />
       </svg>
     </div>
   );
