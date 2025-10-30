@@ -15,9 +15,9 @@ export const DEFAULT_COMPONENT_MAPPINGS: Record<string, ComponentConfig> = {
   'mobile-web-grid': { platform: 'mobile-web', layout: 'grid', componentId: 'ca2dca0f0925c9184a3d0d85e5662cf6db83efd9', libraryName: 'DDS Shopping web domain library', libraryId: 'ca2dca0f0925c9184a3d0d85e5662cf6db83efd9' },
   'mobile-web-vertical': { platform: 'mobile-web', layout: 'vertical', componentId: 'bfd125dd00b542b4e21d2dfb9980ed5584fc8fb6', libraryName: 'DDS Shopping web domain library', libraryId: 'bfd125dd00b542b4e21d2dfb9980ed5584fc8fb6' },
   'mobile-web-horizontal': { platform: 'mobile-web', layout: 'horizontal', componentId: '8612136a8ee1b7f167ad984028c614c3f5ee139a', libraryName: 'DDS Shopping web domain library', libraryId: '8612136a8ee1b7f167ad984028c614c3f5ee139a' },
-  'desktop-web-grid': { platform: 'desktop-web', layout: 'grid', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
-  'desktop-web-vertical': { platform: 'desktop-web', layout: 'vertical', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
-  'desktop-web-horizontal': { platform: 'desktop-web', layout: 'horizontal', componentId: '', libraryName: 'DDS Shopping web domain library', libraryId: '330' },
+  'desktop-web-grid': { platform: 'desktop-web', layout: 'grid', componentId: 'ca2dca0f0925c9184a3d0d85e5662cf6db83efd9', libraryName: 'DDS Shopping web domain library', libraryId: 'ca2dca0f0925c9184a3d0d85e5662cf6db83efd9' },
+  'desktop-web-vertical': { platform: 'desktop-web', layout: 'vertical', componentId: '9a1fb3f66e66b08f80969d8d45a97bc7768c68ef', libraryName: 'DDS Shopping web domain library', libraryId: '9a1fb3f66e66b08f80969d8d45a97bc7768c68ef' },
+  'desktop-web-horizontal': { platform: 'desktop-web', layout: 'horizontal', componentId: '8612136a8ee1b7f167ad984028c614c3f5ee139a', libraryName: 'DDS Shopping web domain library', libraryId: '8612136a8ee1b7f167ad984028c614c3f5ee139a' },
 };
 
 // Initialize with default mappings
