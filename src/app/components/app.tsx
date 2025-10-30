@@ -751,8 +751,8 @@ export class App extends React.Component<{}, AppState> {
           </div>
 
           
-          {/* Recent Searches - only show when at home level */}
-          {viewMode === 'categories' && recentSearches.length > 0 && this.state.categoryNavigation.breadcrumbs.length === 1 && (
+          {/* Recent Searches - always show when available */}
+          {viewMode === 'categories' && recentSearches.length > 0 && (
             <HorizontalScroll className="w-full">
               <FilterChipList
                 chips={recentSearches}
