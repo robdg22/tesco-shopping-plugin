@@ -1056,6 +1056,7 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
   // Layer name configuration based on documentation
   const TILE_LAYER_NAMES = {
     price: "productPrice",
+    priceWeight: "productPriceWeight",
     title: "productName", 
     image: "productImage",
     thumbnail: "Thumbnail",
@@ -1066,27 +1067,61 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
     rating: "Rating"
   };
 
-  // Find and populate text layers
+  // Find and populate title
   if (product.title) {
     const titleNode = findLayerByName(node, TILE_LAYER_NAMES.title);
     if (titleNode && titleNode.type === 'TEXT') {
       await setTextContent(titleNode, product.title);
+      titleNode.visible = true;
     }
   }
 
+  // Find and populate main price
   if (product.price?.price) {
     const priceNode = findLayerByName(node, TILE_LAYER_NAMES.price);
     if (priceNode && priceNode.type === 'TEXT') {
       const priceText = `£${product.price.price.toFixed(2)}`;
       await setTextContent(priceNode, priceText);
+      priceNode.visible = true;
     }
   }
 
-  if (product.promotions && product.promotions.length > 0) {
-    const offerNode = findLayerByName(node, TILE_LAYER_NAMES.offerText);
-    if (offerNode && offerNode.type === 'TEXT') {
-      await setTextContent(offerNode, product.promotions[0].offerText || 'Special Offer');
+  // Find and populate unit price (productPriceWeight) - only show if NOT "each"
+  const priceWeightNode = findLayerByName(node, TILE_LAYER_NAMES.priceWeight);
+  if (priceWeightNode && priceWeightNode.type === 'TEXT') {
+    const hasUnitPrice = product.price?.unitPrice && product.price?.unitOfMeasure;
+    const isNotEach = product.price?.unitOfMeasure?.toLowerCase() !== "each";
+    
+    if (hasUnitPrice && isNotEach) {
+      const unitPriceText = `£${parseFloat(product.price.unitPrice).toFixed(2)}/${product.price.unitOfMeasure}`;
+      await setTextContent(priceWeightNode, unitPriceText);
+      priceWeightNode.visible = true;
+      console.log(`Set unit price: ${unitPriceText}`);
+    } else {
+      priceWeightNode.visible = false;
+      console.log(`Hiding unit price (unitOfMeasure: ${product.price?.unitOfMeasure || 'none'})`);
     }
+  }
+
+  // Find and populate promotions
+  const hasPromotions = product.promotions && product.promotions.length > 0;
+  
+  // Offer text
+  const offerNode = findLayerByName(node, TILE_LAYER_NAMES.offerText);
+  if (offerNode && offerNode.type === 'TEXT') {
+    if (hasPromotions) {
+      await setTextContent(offerNode, product.promotions[0].offerText || 'Special Offer');
+      offerNode.visible = true;
+    } else {
+      offerNode.visible = false;
+    }
+  }
+
+  // Value bar component visibility
+  const valueBarNode = findLayerByName(node, TILE_LAYER_NAMES.valueBar);
+  if (valueBarNode) {
+    valueBarNode.visible = hasPromotions;
+    console.log(`Value bar visibility: ${hasPromotions}`);
   }
 
   // Handle images
@@ -1096,17 +1131,18 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
     
     if (imageNode && (imageNode.type === 'RECTANGLE' || imageNode.type === 'FRAME')) {
       await setImageFill(imageNode, imageUrl);
+      imageNode.visible = true;
     }
   }
 
   // Handle component variants (Thumbnail)
   const thumbnailNode = findLayerByName(node, TILE_LAYER_NAMES.thumbnail);
   if (thumbnailNode && thumbnailNode.type === 'INSTANCE') {
-    // Try to set variant properties if available
     try {
       if (product.defaultImageUrl || product.media?.defaultImage?.url) {
         const imageUrl = product.defaultImageUrl || product.media.defaultImage.url;
         await setImageFill(thumbnailNode, imageUrl);
+        thumbnailNode.visible = true;
       }
     } catch (error) {
       console.log('Could not set thumbnail image:', error);
