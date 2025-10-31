@@ -561,11 +561,28 @@ async function handlePopulateSelectedTiles(payload?: {
 }) {
   console.log('Starting population with config:', { 
     platform: payload?.platform, 
-    layout: payload?.layout 
+    layout: payload?.layout,
+    totalProducts: payload?.products?.length,
+    selectedProductIds: payload?.selectedProducts
   });
   
   if (!payload?.products || payload.products.length === 0) {
     figma.ui.postMessage({ type: 'error', error: 'No products provided' });
+    return;
+  }
+
+  // Filter products based on selection
+  let productsToUse = payload.products;
+  if (payload.selectedProducts && payload.selectedProducts.length > 0) {
+    // selectedProducts is an array of product IDs
+    productsToUse = payload.products.filter(product => 
+      payload.selectedProducts!.includes(product.id)
+    );
+    console.log(`Filtered to ${productsToUse.length} selected products from ${payload.products.length} total`);
+  }
+
+  if (productsToUse.length === 0) {
+    figma.ui.postMessage({ type: 'error', error: 'No products to populate' });
     return;
   }
 
@@ -577,23 +594,23 @@ async function handlePopulateSelectedTiles(payload?: {
     
     if (existingTiles.length > 0) {
       // Mode A: Fill existing tiles (ignore platform/layout settings)
-      await populateExistingTiles(existingTiles, payload.products);
+      await populateExistingTiles(existingTiles, productsToUse);
     } else if (selectedNodes.length === 1 && selectedNodes[0].type === 'FRAME') {
       // Mode B: Selected empty frame - create instances inside
       await createInstancesInFrame(
         selectedNodes[0] as FrameNode, 
-        payload.products,
+        productsToUse,
         payload.platform || 'app',
         payload.layout || 'grid',
-        payload.selectedProducts?.length || payload.products.length
+        productsToUse.length
       );
     } else {
       // Mode C: No selection or invalid selection - create new frame
       await createNewFrameWithInstances(
-        payload.products,
+        productsToUse,
         payload.platform || 'app',
         payload.layout || 'grid',
-        payload.selectedProducts?.length || payload.products.length
+        productsToUse.length
       );
     }
   } catch (error) {
@@ -604,7 +621,7 @@ async function handlePopulateSelectedTiles(payload?: {
   }
 }
 
-// Populate existing tiles (keep current implementation)
+// Populate existing tiles - cycles through products if more tiles than products
 async function populateExistingTiles(tiles: SceneNode[], products: any[]) {
   let populatedCount = 0;
   const errors: string[] = [];
@@ -628,9 +645,11 @@ async function populateExistingTiles(tiles: SceneNode[], products: any[]) {
     console.warn('Some fonts failed to load:', error);
   }
   
-  for (let i = 0; i < tiles.length && i < products.length; i++) {
+  // Populate tiles, cycling through products if there are more tiles than products
+  for (let i = 0; i < tiles.length; i++) {
+    const productIndex = i % products.length; // Cycle through products
     try {
-      await populateNodeWithProduct(tiles[i], products[i]);
+      await populateNodeWithProduct(tiles[i], products[productIndex]);
       populatedCount++;
     } catch (error) {
       errors.push(`Tile ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
