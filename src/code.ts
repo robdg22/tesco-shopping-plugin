@@ -1093,20 +1093,28 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
     }
   }
 
-  // Find and populate unit price (productPriceWeight) - only show if NOT "each"
+  // Find and populate unit price (productPriceWeight) - only show if different from main price
   const priceWeightNode = findLayerByName(node, TILE_LAYER_NAMES.priceWeight);
   if (priceWeightNode && priceWeightNode.type === 'TEXT') {
     const hasUnitPrice = product.price?.unitPrice && product.price?.unitOfMeasure;
-    const isNotEach = product.price?.unitOfMeasure?.toLowerCase() !== "each";
     
-    if (hasUnitPrice && isNotEach) {
-      const unitPriceText = `£${parseFloat(product.price.unitPrice).toFixed(2)}/${product.price.unitOfMeasure}`;
-      await setTextContent(priceWeightNode, unitPriceText);
-      priceWeightNode.visible = true;
-      console.log(`Set unit price: ${unitPriceText}`);
+    if (hasUnitPrice) {
+      const mainPrice = product.price.price;
+      const unitPrice = parseFloat(product.price.unitPrice);
+      const isDifferent = Math.abs(mainPrice - unitPrice) > 0.001; // Allow for floating point tolerance
+      
+      if (isDifferent) {
+        const unitPriceText = `£${unitPrice.toFixed(2)}/${product.price.unitOfMeasure}`;
+        await setTextContent(priceWeightNode, unitPriceText);
+        priceWeightNode.visible = true;
+        console.log(`Set unit price: ${unitPriceText} (main: £${mainPrice}, unit: £${unitPrice})`);
+      } else {
+        priceWeightNode.visible = false;
+        console.log(`Hiding unit price - same as main price (£${mainPrice})`);
+      }
     } else {
       priceWeightNode.visible = false;
-      console.log(`Hiding unit price (unitOfMeasure: ${product.price?.unitOfMeasure || 'none'})`);
+      console.log(`Hiding unit price - no unit price data`);
     }
   }
 
