@@ -1064,7 +1064,14 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
     offerEndDate: "offerEndDate",
     swatches: "variationSwatches",
     valueBar: "valueBar",
-    rating: "Rating"
+    rating: "Rating",
+    ratingText: "productRatingText",
+    ratingStars: "productRatingStars",
+    productRating: "productRating",
+    productTags: "productTags",
+    tagNew: "tagNew",
+    tagMarketplace: "tagMarketplace",
+    tagFnf: "tagFnf"
   };
 
   // Find and populate title
@@ -1147,6 +1154,122 @@ async function populateNodeWithProduct(node: SceneNode, product: any) {
     } catch (error) {
       console.log('Could not set thumbnail image:', error);
     }
+  }
+
+  // Handle ratings
+  const hasReviews = product.reviews?.stats?.noOfReviews > 0 && 
+                     product.reviews?.stats?.overallRating !== undefined;
+  
+  if (hasReviews) {
+    const overallRating = product.reviews.stats.overallRating;
+    const noOfReviews = product.reviews.stats.noOfReviews;
+    
+    // Rating text (e.g., "4.2 (156)")
+    const ratingTextNode = findLayerByName(node, TILE_LAYER_NAMES.ratingText);
+    if (ratingTextNode && ratingTextNode.type === 'TEXT') {
+      const ratingText = `${overallRating.toFixed(1)} (${noOfReviews})`;
+      await setTextContent(ratingTextNode, ratingText);
+      ratingTextNode.visible = true;
+      console.log(`Set rating text: ${ratingText}`);
+    }
+    
+    // Rating stars component - set variant based on rating
+    const ratingStarsNode = findLayerByName(node, TILE_LAYER_NAMES.ratingStars);
+    if (ratingStarsNode && ratingStarsNode.type === 'INSTANCE') {
+      try {
+        // Round to nearest 0.5
+        const roundedRating = Math.round(overallRating * 2) / 2;
+        const validRating = Math.max(0, Math.min(5, roundedRating));
+        
+        // Try to set Stars variant property
+        if ((ratingStarsNode as InstanceNode).variantProperties?.Stars) {
+          (ratingStarsNode as InstanceNode).setProperties({ Stars: validRating.toString() });
+          console.log(`Set rating stars to: ${validRating}`);
+        }
+        ratingStarsNode.visible = true;
+      } catch (error) {
+        console.log('Could not set rating stars variant:', error);
+      }
+    }
+    
+    // Rating container visibility
+    const ratingContainerNode = findLayerByName(node, TILE_LAYER_NAMES.productRating) || 
+                                 findLayerByName(node, TILE_LAYER_NAMES.rating);
+    if (ratingContainerNode) {
+      ratingContainerNode.visible = true;
+    }
+  } else {
+    // Hide rating elements if no reviews
+    const ratingTextNode = findLayerByName(node, TILE_LAYER_NAMES.ratingText);
+    if (ratingTextNode) ratingTextNode.visible = false;
+    
+    const ratingStarsNode = findLayerByName(node, TILE_LAYER_NAMES.ratingStars);
+    if (ratingStarsNode) ratingStarsNode.visible = false;
+    
+    const ratingContainerNode = findLayerByName(node, TILE_LAYER_NAMES.productRating) || 
+                                 findLayerByName(node, TILE_LAYER_NAMES.rating);
+    if (ratingContainerNode) ratingContainerNode.visible = false;
+    
+    console.log('No reviews - hiding rating elements');
+  }
+
+  // Handle tags
+  const isNew = product.isNew === true;
+  const isMarketplace = product.__typename === "MPProduct";
+  const isFnF = product.__typename === "FNFProduct";
+  const hasAnyTag = isNew || isMarketplace || isFnF;
+  
+  // Individual tag visibility and variants
+  const tagNewNode = findLayerByName(node, TILE_LAYER_NAMES.tagNew);
+  if (tagNewNode) {
+    if (tagNewNode.type === 'INSTANCE' && isNew) {
+      try {
+        if ((tagNewNode as InstanceNode).variantProperties?.Type) {
+          (tagNewNode as InstanceNode).setProperties({ Type: "New" });
+        }
+      } catch (error) {
+        console.log('Could not set New tag variant:', error);
+      }
+    }
+    tagNewNode.visible = isNew;
+    console.log(`New tag visibility: ${isNew}`);
+  }
+  
+  const tagMarketplaceNode = findLayerByName(node, TILE_LAYER_NAMES.tagMarketplace);
+  if (tagMarketplaceNode) {
+    if (tagMarketplaceNode.type === 'INSTANCE' && isMarketplace) {
+      try {
+        if ((tagMarketplaceNode as InstanceNode).variantProperties?.Type) {
+          (tagMarketplaceNode as InstanceNode).setProperties({ Type: "Marketplace" });
+        }
+      } catch (error) {
+        console.log('Could not set Marketplace tag variant:', error);
+      }
+    }
+    tagMarketplaceNode.visible = isMarketplace;
+    console.log(`Marketplace tag visibility: ${isMarketplace}`);
+  }
+  
+  const tagFnfNode = findLayerByName(node, TILE_LAYER_NAMES.tagFnf);
+  if (tagFnfNode) {
+    if (tagFnfNode.type === 'INSTANCE' && isFnF) {
+      try {
+        if ((tagFnfNode as InstanceNode).variantProperties?.Type) {
+          (tagFnfNode as InstanceNode).setProperties({ Type: "F&F" });
+        }
+      } catch (error) {
+        console.log('Could not set F&F tag variant:', error);
+      }
+    }
+    tagFnfNode.visible = isFnF;
+    console.log(`F&F tag visibility: ${isFnF}`);
+  }
+  
+  // Tag container visibility
+  const tagsContainerNode = findLayerByName(node, TILE_LAYER_NAMES.productTags);
+  if (tagsContainerNode) {
+    tagsContainerNode.visible = hasAnyTag;
+    console.log(`Tags container visibility: ${hasAnyTag}`);
   }
 }
 
